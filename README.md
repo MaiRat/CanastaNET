@@ -1,6 +1,6 @@
 # CanastaNET
 
-CanastaNET is a .NET/C# Canasta project with a foundational game engine. The repository now provides round-state modeling, shuffle/deal/draw/discard turn flow, a small command-line entry point, and matching automated tests so future milestones can build on a stable core.
+CanastaNET is a .NET/C# Canasta project with a foundational game engine. The repository now provides explicit setup and round-state modeling, configurable shuffle/deal/draw/discard turn flow, a small command-line entry point, and matching automated tests so future milestones can build on a stable core.
 
 ## Project structure
 

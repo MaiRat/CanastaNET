@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.ObjectModel;
 
 namespace CanastaNET.Engine;
@@ -7,9 +8,9 @@ public sealed class GameEngine
     private static readonly string[] ImplementedSubsystems =
     [
         "Card, deck, hand, team, and meld modeling",
-        "Controlled round state snapshots",
+        "Controlled setup and round state snapshots",
         "Shuffle, deal, draw, discard, and turn progression",
-        "Configurable player order, team count, and round setup"
+        "Configurable player order, team count, and house-rule-ready round setup"
     ];
 
     public string GetStartupMessage() => "CanastaNET engine foundation ready.";
@@ -53,6 +54,7 @@ public sealed class GameEngine
 
         var discardPile = new List<Card> { deck[0] };
         deck.RemoveAt(0);
+        var firstPlayerIndex = GetFirstPlayerIndex(roundConfiguration);
 
         var players = roundConfiguration.PlayerOrder
             .Select((playerName, playerIndex) => new PlayerState(
@@ -71,12 +73,19 @@ public sealed class GameEngine
 
         return new GameRoundState(
             roundConfiguration,
+            new RoundSetupData(
+                seed,
+                firstPlayerIndex,
+                roundConfiguration.DealerIndex,
+                roundConfiguration.CardsPerPlayer,
+                discardPile,
+                deck.Count),
             players,
             teams,
-            deck,
-            discardPile,
+            new DeckState(deck),
+            new DiscardPileState(discardPile),
             roundConfiguration.DealerIndex,
-            nextSeatToDeal,
+            firstPlayerIndex,
             TurnPhase.AwaitingDraw,
             0,
             null);
@@ -96,6 +105,7 @@ public sealed class GameEngine
         {
             return new GameRoundState(
                 roundState.Configuration,
+                roundState.Setup,
                 roundState.Players,
                 roundState.Teams,
                 roundState.StockPile,
@@ -127,9 +137,10 @@ public sealed class GameEngine
 
         return new GameRoundState(
             roundState.Configuration,
+            roundState.Setup,
             players,
             roundState.Teams,
-            stockPile,
+            new DeckState(stockPile),
             roundState.DiscardPile,
             roundState.DealerIndex,
             roundState.CurrentPlayerIndex,
@@ -171,10 +182,11 @@ public sealed class GameEngine
 
         return new GameRoundState(
             roundState.Configuration,
+            roundState.Setup,
             players,
             roundState.Teams,
             roundState.StockPile,
-            discardPile,
+            new DiscardPileState(discardPile),
             roundState.DealerIndex,
             GetNextPlayerIndex(roundState.CurrentPlayerIndex, roundState.Players.Count),
             TurnPhase.AwaitingDraw,
@@ -191,6 +203,13 @@ public sealed class GameEngine
     }
 
     private static int GetNextPlayerIndex(int playerIndex, int playerCount) => (playerIndex + 1) % playerCount;
+
+    private static int GetFirstPlayerIndex(GameConfiguration configuration) =>
+        configuration.HouseRules.RoundStartPlayerRule switch
+        {
+            RoundStartPlayerRule.DealerStartsRound => configuration.DealerIndex,
+            _ => GetNextPlayerIndex(configuration.DealerIndex, configuration.PlayerOrder.Count)
+        };
 
     private static List<Card> CreateDeck(GameConfiguration configuration)
     {
@@ -245,7 +264,8 @@ public sealed class GameConfiguration
         int dealerIndex = 0,
         int deckCount = 2,
         int cardsPerPlayer = 11,
-        int jokersPerDeck = 2)
+        int jokersPerDeck = 2,
+        HouseRuleOptions? houseRules = null)
     {
         ArgumentNullException.ThrowIfNull(playerOrder);
 
@@ -304,6 +324,7 @@ public sealed class GameConfiguration
         DeckCount = deckCount;
         CardsPerPlayer = cardsPerPlayer;
         JokersPerDeck = jokersPerDeck;
+        HouseRules = houseRules ?? HouseRuleOptions.CreateDefault();
     }
 
     public IReadOnlyList<string> PlayerOrder { get; }
@@ -318,17 +339,85 @@ public sealed class GameConfiguration
 
     public int JokersPerDeck { get; }
 
+    public HouseRuleOptions HouseRules { get; }
+
     public static GameConfiguration CreateDefault() => new(["North", "East", "South", "West"]);
+}
+
+public sealed class HouseRuleOptions
+{
+    public HouseRuleOptions(RoundStartPlayerRule roundStartPlayerRule = RoundStartPlayerRule.NextPlayerAfterDealer)
+    {
+        RoundStartPlayerRule = roundStartPlayerRule;
+    }
+
+    public RoundStartPlayerRule RoundStartPlayerRule { get; }
+
+    public static HouseRuleOptions CreateDefault() => new();
+}
+
+public sealed class RoundSetupData
+{
+    public RoundSetupData(
+        int? shuffleSeed,
+        int firstPlayerIndex,
+        int dealerIndex,
+        int cardsPerPlayer,
+        IEnumerable<Card> openingDiscardPile,
+        int initialStockCount)
+    {
+        ArgumentNullException.ThrowIfNull(openingDiscardPile);
+
+        if (firstPlayerIndex < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(firstPlayerIndex));
+        }
+
+        if (dealerIndex < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(dealerIndex));
+        }
+
+        if (cardsPerPlayer < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(cardsPerPlayer));
+        }
+
+        if (initialStockCount < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(initialStockCount));
+        }
+
+        ShuffleSeed = shuffleSeed;
+        FirstPlayerIndex = firstPlayerIndex;
+        DealerIndex = dealerIndex;
+        CardsPerPlayer = cardsPerPlayer;
+        OpeningDiscardPile = new DiscardPileState(openingDiscardPile);
+        InitialStockCount = initialStockCount;
+    }
+
+    public int? ShuffleSeed { get; }
+
+    public int FirstPlayerIndex { get; }
+
+    public int DealerIndex { get; }
+
+    public int CardsPerPlayer { get; }
+
+    public DiscardPileState OpeningDiscardPile { get; }
+
+    public int InitialStockCount { get; }
 }
 
 public sealed class GameRoundState
 {
     public GameRoundState(
         GameConfiguration configuration,
+        RoundSetupData setup,
         IEnumerable<PlayerState> players,
         IEnumerable<TeamState> teams,
-        IEnumerable<Card> stockPile,
-        IEnumerable<Card> discardPile,
+        DeckState stockPile,
+        DiscardPileState discardPile,
         int dealerIndex,
         int currentPlayerIndex,
         TurnPhase turnPhase,
@@ -336,11 +425,12 @@ public sealed class GameRoundState
         RoundSummaryData? summary)
     {
         Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        Setup = setup ?? throw new ArgumentNullException(nameof(setup));
 
         var roundPlayers = (players ?? throw new ArgumentNullException(nameof(players))).ToArray();
         var roundTeams = (teams ?? throw new ArgumentNullException(nameof(teams))).ToArray();
-        var stockCards = (stockPile ?? throw new ArgumentNullException(nameof(stockPile))).ToArray();
-        var discardCards = (discardPile ?? throw new ArgumentNullException(nameof(discardPile))).ToArray();
+        ArgumentNullException.ThrowIfNull(stockPile);
+        ArgumentNullException.ThrowIfNull(discardPile);
 
         if (roundPlayers.Length == 0)
         {
@@ -357,7 +447,7 @@ public sealed class GameRoundState
             throw new ArgumentOutOfRangeException(nameof(dealerIndex));
         }
 
-        if (discardCards.Length == 0)
+        if (discardPile.Count == 0)
         {
             throw new ArgumentException("The discard pile must contain at least one up card.", nameof(discardPile));
         }
@@ -374,8 +464,8 @@ public sealed class GameRoundState
 
         Players = Array.AsReadOnly(roundPlayers);
         Teams = Array.AsReadOnly(roundTeams);
-        StockPile = Array.AsReadOnly(stockCards);
-        DiscardPile = Array.AsReadOnly(discardCards);
+        StockPile = stockPile;
+        DiscardPile = discardPile;
         DealerIndex = dealerIndex;
         CurrentPlayerIndex = currentPlayerIndex;
         TurnPhase = turnPhase;
@@ -385,13 +475,15 @@ public sealed class GameRoundState
 
     public GameConfiguration Configuration { get; }
 
+    public RoundSetupData Setup { get; }
+
     public IReadOnlyList<PlayerState> Players { get; }
 
     public IReadOnlyList<TeamState> Teams { get; }
 
-    public IReadOnlyList<Card> StockPile { get; }
+    public DeckState StockPile { get; }
 
-    public IReadOnlyList<Card> DiscardPile { get; }
+    public DiscardPileState DiscardPile { get; }
 
     public int DealerIndex { get; }
 
@@ -422,7 +514,7 @@ public sealed class PlayerState
         PlayerIndex = playerIndex;
         Name = name;
         TeamIndex = teamIndex;
-        Hand = Array.AsReadOnly(hand.ToArray());
+        Hand = new HandState(hand);
     }
 
     public int PlayerIndex { get; }
@@ -431,7 +523,7 @@ public sealed class PlayerState
 
     public int TeamIndex { get; }
 
-    public IReadOnlyList<Card> Hand { get; }
+    public HandState Hand { get; }
 }
 
 public sealed class TeamState
@@ -463,6 +555,72 @@ public sealed class MeldState
     }
 
     public IReadOnlyList<Card> Cards { get; }
+}
+
+public sealed class DeckState : IReadOnlyList<Card>
+{
+    private readonly ReadOnlyCollection<Card> cards;
+
+    public DeckState(IEnumerable<Card> cards)
+    {
+        ArgumentNullException.ThrowIfNull(cards);
+
+        this.cards = Array.AsReadOnly(cards.ToArray());
+    }
+
+    public int Count => cards.Count;
+
+    public Card this[int index] => cards[index];
+
+    public bool IsEmpty => Count == 0;
+
+    public IEnumerator<Card> GetEnumerator() => cards.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+public sealed class DiscardPileState : IReadOnlyList<Card>
+{
+    private readonly ReadOnlyCollection<Card> cards;
+
+    public DiscardPileState(IEnumerable<Card> cards)
+    {
+        ArgumentNullException.ThrowIfNull(cards);
+
+        this.cards = Array.AsReadOnly(cards.ToArray());
+    }
+
+    public int Count => cards.Count;
+
+    public Card this[int index] => cards[index];
+
+    public Card TopCard => cards[^1];
+
+    public IEnumerator<Card> GetEnumerator() => cards.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+}
+
+public sealed class HandState : IReadOnlyList<Card>
+{
+    private readonly ReadOnlyCollection<Card> cards;
+
+    public HandState(IEnumerable<Card> cards)
+    {
+        ArgumentNullException.ThrowIfNull(cards);
+
+        this.cards = Array.AsReadOnly(cards.ToArray());
+    }
+
+    public int Count => cards.Count;
+
+    public Card this[int index] => cards[index];
+
+    public bool ContainsInstance(int instanceId) => cards.Any(card => card.InstanceId == instanceId);
+
+    public IEnumerator<Card> GetEnumerator() => cards.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
 
 public sealed class RoundSummaryData
@@ -597,4 +755,10 @@ public enum TurnPhase
 public enum RoundEndReason
 {
     StockExhausted
+}
+
+public enum RoundStartPlayerRule
+{
+    NextPlayerAfterDealer,
+    DealerStartsRound
 }

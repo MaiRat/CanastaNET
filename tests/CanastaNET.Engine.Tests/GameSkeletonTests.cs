@@ -16,6 +16,10 @@ public class GameSkeletonTests
         Assert.Equal(TurnPhase.AwaitingDraw, round.TurnPhase);
         Assert.Equal(1, round.CurrentPlayerIndex);
         Assert.Equal("East", round.CurrentPlayer.Name);
+        Assert.Equal(42, round.Setup.ShuffleSeed);
+        Assert.Equal(1, round.Setup.FirstPlayerIndex);
+        Assert.Equal(0, round.Setup.DealerIndex);
+        Assert.Equal(11, round.Setup.CardsPerPlayer);
         Assert.Equal(4, round.Players.Count);
         Assert.Equal(2, round.Teams.Count);
         Assert.All(round.Players, player => Assert.Equal(11, player.Hand.Count));
@@ -23,7 +27,9 @@ public class GameSkeletonTests
         Assert.Equal([1, 3], round.Teams[1].PlayerIndexes);
         Assert.All(round.Teams, team => Assert.Empty(team.Melds));
         Assert.Single(round.DiscardPile);
+        Assert.Equal(round.DiscardPile.TopCard, round.Setup.OpeningDiscardPile.TopCard);
         Assert.Equal(63, round.StockPile.Count);
+        Assert.Equal(63, round.Setup.InitialStockCount);
 
         var allCards = round.Players.SelectMany(player => player.Hand)
             .Concat(round.StockPile)
@@ -52,6 +58,23 @@ public class GameSkeletonTests
         Assert.Equal([1, 4], round.Teams[1].PlayerIndexes);
         Assert.Equal([2, 5], round.Teams[2].PlayerIndexes);
         Assert.All(round.Players, player => Assert.Equal(5, player.Hand.Count));
+    }
+
+    [Fact]
+    public void StartRound_CanUseDealerStartHouseRule()
+    {
+        var engine = new GameEngine();
+        var configuration = new GameConfiguration(
+            ["North", "East", "South", "West"],
+            dealerIndex: 2,
+            houseRules: new HouseRuleOptions(RoundStartPlayerRule.DealerStartsRound));
+
+        var round = engine.StartRound(configuration, seed: 9);
+
+        Assert.Equal(2, round.CurrentPlayerIndex);
+        Assert.Equal("South", round.CurrentPlayer.Name);
+        Assert.Equal(RoundStartPlayerRule.DealerStartsRound, round.Configuration.HouseRules.RoundStartPlayerRule);
+        Assert.Equal(2, round.Setup.FirstPlayerIndex);
     }
 
     [Fact]
@@ -154,7 +177,7 @@ public class GameSkeletonTests
 
         Assert.Contains("Welcome to CanastaNET!", text);
         Assert.Contains("Milestone 1 engine foundation", text);
-        Assert.Contains("Controlled round state snapshots", text);
+        Assert.Contains("Controlled setup and round state snapshots", text);
         Assert.Contains("Next steps:", text);
         Assert.Contains("- Expand CLI commands", text);
     }
