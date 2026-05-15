@@ -55,6 +55,28 @@ public class GameSkeletonTests
     }
 
     [Fact]
+    public void StartRound_SupportsMinimumTwoPlayerConfiguration()
+    {
+        var engine = new GameEngine();
+        var configuration = new GameConfiguration(
+            ["North", "South"],
+            teamCount: 2,
+            dealerIndex: 1,
+            deckCount: 1);
+
+        var round = engine.StartRound(configuration, seed: 5);
+
+        Assert.Equal(2, round.Players.Count);
+        Assert.Equal(2, round.Teams.Count);
+        Assert.Equal(0, round.CurrentPlayerIndex);
+        Assert.Equal("North", round.CurrentPlayer.Name);
+        Assert.All(round.Players, player => Assert.Equal(11, player.Hand.Count));
+        Assert.Equal([0], round.Teams[0].PlayerIndexes);
+        Assert.Equal([1], round.Teams[1].PlayerIndexes);
+        Assert.Equal(31, round.StockPile.Count);
+    }
+
+    [Fact]
     public void DrawAndDiscard_AdvanceTurnAndUpdatePiles()
     {
         var engine = new GameEngine();

@@ -150,7 +150,7 @@ public sealed class GameEngine
 
         var currentPlayer = roundState.CurrentPlayer;
         var updatedHand = currentPlayer.Hand.ToList();
-        var handIndex = updatedHand.FindIndex(currentCard => currentCard == card);
+        var handIndex = updatedHand.FindIndex(currentCard => currentCard.InstanceId == card.InstanceId);
 
         if (handIndex < 0)
         {
@@ -227,7 +227,7 @@ public sealed class GameEngine
 
     private static void Shuffle(IList<Card> deck, int? seed)
     {
-        var random = seed is { } seededValue ? new Random(seededValue) : Random.Shared;
+        var random = seed.HasValue ? new Random(seed.Value) : Random.Shared;
 
         for (var cardIndex = deck.Count - 1; cardIndex > 0; cardIndex--)
         {
