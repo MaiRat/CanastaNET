@@ -9,6 +9,10 @@ CanastaNET is an initial .NET/C# skeleton for a Canasta card game. This reposito
 - `docs/` - project notes and future documentation space
 - `tests/` - automated tests for the current skeleton
 
+## Roadmap
+
+- See [`docs/roadmap.md`](docs/roadmap.md) for the current development roadmap covering the game engine, CLI, and planned desktop UI.
+
 ## Getting started
 
 1. Install the .NET 10 SDK or newer.
