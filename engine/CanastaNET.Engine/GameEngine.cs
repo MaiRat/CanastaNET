@@ -227,7 +227,7 @@ public sealed class GameEngine
 
     private static void Shuffle(IList<Card> deck, int? seed)
     {
-        var random = seed is { } seededValue ? new Random(seededValue) : new Random();
+        var random = seed is { } seededValue ? new Random(seededValue) : Random.Shared;
 
         for (var cardIndex = deck.Count - 1; cardIndex > 0; cardIndex--)
         {
@@ -372,7 +372,6 @@ public sealed class GameRoundState
             throw new ArgumentException("Completed rounds must include a summary.", nameof(summary));
         }
 
-        Configuration = configuration;
         Players = Array.AsReadOnly(roundPlayers);
         Teams = Array.AsReadOnly(roundTeams);
         StockPile = Array.AsReadOnly(stockCards);
