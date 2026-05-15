@@ -11,13 +11,13 @@ public static class CliApplication
         return string.Join(
             Environment.NewLine,
             "Welcome to CanastaNET!",
-            "This command-line app is a starting point for the Canasta game.",
+            "This command-line app currently exposes the Milestone 1 engine foundation.",
             string.Empty,
             engine.CreateMockGameSummary(),
             string.Empty,
             "Next steps:",
-            "- Implement game setup",
-            "- Add turn handling",
+            "- Implement meld rules and scoring",
+            "- Add round-ending rules beyond stock exhaustion",
             "- Expand CLI commands");
     }
 }

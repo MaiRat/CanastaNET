@@ -1,13 +1,13 @@
 # CanastaNET
 
-CanastaNET is an initial .NET/C# skeleton for a Canasta card game. This repository currently provides a small engine project, a command-line entry point, and a matching test project so future issues can build out the actual game rules and gameplay flow.
+CanastaNET is a .NET/C# Canasta project with a foundational game engine. The repository now provides explicit setup and round-state modeling, configurable shuffle/deal/draw/discard turn flow, a small command-line entry point, and matching automated tests so future milestones can build on a stable core.
 
 ## Project structure
 
-- `engine/` - core game engine project and placeholder APIs
-- `cli/` - command-line app for a simple mock run
+- `engine/` - core game engine project and round-state APIs
+- `cli/` - command-line app for inspecting the current engine foundation
 - `docs/` - project notes and future documentation space
-- `tests/` - automated tests for the current skeleton
+- `tests/` - automated tests for engine behavior
 
 ## Roadmap
 
