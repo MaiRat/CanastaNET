@@ -1,0 +1,52 @@
+<Application x:Class="CanastaNET.Desktop.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <Color x:Key="AppBackgroundColor">#FF17212B</Color>
+        <Color x:Key="PanelBackgroundColor">#FF243447</Color>
+        <Color x:Key="PanelAccentColor">#FF2E4762</Color>
+        <Color x:Key="PrimaryTextColor">#FFF5F7FA</Color>
+        <Color x:Key="MutedTextColor">#FFB6C2CF</Color>
+        <Color x:Key="ActionColor">#FF4F9DED</Color>
+        <Color x:Key="SuccessColor">#FF2C9A63</Color>
+
+        <SolidColorBrush x:Key="AppBackgroundBrush" Color="{StaticResource AppBackgroundColor}" />
+        <SolidColorBrush x:Key="PanelBackgroundBrush" Color="{StaticResource PanelBackgroundColor}" />
+        <SolidColorBrush x:Key="PanelAccentBrush" Color="{StaticResource PanelAccentColor}" />
+        <SolidColorBrush x:Key="PrimaryTextBrush" Color="{StaticResource PrimaryTextColor}" />
+        <SolidColorBrush x:Key="MutedTextBrush" Color="{StaticResource MutedTextColor}" />
+        <SolidColorBrush x:Key="ActionBrush" Color="{StaticResource ActionColor}" />
+        <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
+
+        <Style TargetType="Window">
+            <Setter Property="Background" Value="{StaticResource AppBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+        </Style>
+
+        <Style TargetType="GroupBox">
+            <Setter Property="Margin" Value="0,0,0,12" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="BorderBrush" Value="{StaticResource PanelAccentBrush}" />
+            <Setter Property="Background" Value="{StaticResource PanelBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}" />
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Margin" Value="0,0,8,8" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="Background" Value="{StaticResource ActionBrush}" />
+            <Setter Property="Foreground" Value="White" />
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="Padding" Value="6" />
+        </Style>
+
+        <Style TargetType="TabItem">
+            <Setter Property="Padding" Value="14,8" />
+        </Style>
+    </Application.Resources>
+</Application>
