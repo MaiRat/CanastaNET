@@ -1085,7 +1085,9 @@ public sealed class DiscardPileState : IReadOnlyList<Card>
 
     public bool IsEmpty => cards.Count == 0;
 
-    public Card TopCard => IsEmpty ? throw new InvalidOperationException("The discard pile is empty.") : cards[^1];
+    public Card TopCard => IsEmpty
+        ? throw new InvalidOperationException("Cannot access TopCard because the discard pile is empty. Check IsEmpty before accessing TopCard.")
+        : cards[^1];
 
     public bool IsFrozen => cards.Any(card => card.IsWild);
 

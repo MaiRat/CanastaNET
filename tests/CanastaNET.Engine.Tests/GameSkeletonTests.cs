@@ -315,7 +315,9 @@ public class GameSkeletonTests
         var teamArray = teams.ToArray();
         var discardCards = (discardPile ?? [CreateCard(999, CardRank.Five, CardSuit.Clubs)]).ToArray();
         var stockCards = (stockPile ?? []).ToArray();
-        var cardsPerPlayer = Math.Max(playerArray.DefaultIfEmpty().Max(player => player?.Hand.Count ?? 0), 1);
+        var cardsPerPlayer = playerArray.Any()
+            ? Math.Max(playerArray.Max(player => player.Hand.Count), 1)
+            : 1;
         var configuration = new GameConfiguration(
             playerArray.Select(player => player.Name),
             teamCount: teamArray.Length,
