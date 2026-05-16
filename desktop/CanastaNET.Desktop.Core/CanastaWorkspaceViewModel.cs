@@ -895,7 +895,7 @@ public sealed record SetupPresetViewModel(
     string? SeedText,
     string? NextRoundSeedText)
 {
-    public string DefaultSnapshotFileName => $"{Name.ToLowerInvariant().Replace(' ', '-').Replace("'", string.Empty)}.canasta.json";
+    public string DefaultSnapshotFileName => $"{CreateFileSafeSlug(Name)}.canasta.json";
 
     public void Apply(MatchSetupViewModel setup)
     {
@@ -909,6 +909,21 @@ public sealed record SetupPresetViewModel(
         setup.WinningScore = WinningScore;
         setup.SeedText = SeedText;
         setup.NextRoundSeedText = NextRoundSeedText;
+    }
+
+    private static string CreateFileSafeSlug(string value)
+    {
+        var invalidCharacters = Path.GetInvalidFileNameChars();
+        var sanitized = new string(value
+            .Trim()
+            .ToLowerInvariant()
+            .Select(character => invalidCharacters.Contains(character) ? '-' : character)
+            .ToArray());
+
+        sanitized = string.Join("-", sanitized
+            .Split([' ', '-'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+
+        return string.IsNullOrWhiteSpace(sanitized) ? "canasta-match" : sanitized;
     }
 }
 

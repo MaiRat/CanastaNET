@@ -128,7 +128,7 @@
 
                 <GroupBox Header="Round actions">
                     <WrapPanel>
-                        <Button Command="{Binding DrawStockCommand}" Content="Draw stoc_k" />
+                        <Button Command="{Binding DrawStockCommand}" Content="_Draw stock" />
                         <Button Command="{Binding DrawDiscardCommand}" Content="Draw _discard" />
                         <Button Command="{Binding MeldCommand}" Content="_Meld selected" />
                         <Button Command="{Binding DiscardCommand}" Content="D_iscard selected" />
