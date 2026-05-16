@@ -128,12 +128,24 @@
 
                 <GroupBox Header="Round actions">
                     <WrapPanel>
-                        <Button Command="{Binding DrawStockCommand}" Content="_Draw stock" />
-                        <Button Command="{Binding DrawDiscardCommand}" Content="Draw _discard" />
-                        <Button Command="{Binding MeldCommand}" Content="_Meld selected" />
-                        <Button Command="{Binding DiscardCommand}" Content="D_iscard selected" />
-                        <Button Command="{Binding EndTurnCommand}" Content="_End turn" />
-                        <Button Command="{Binding NextRoundCommand}" Content="_Next round" />
+                        <Button Command="{Binding DrawStockCommand}"
+                                Content="_Draw stock"
+                                automation:AutomationProperties.Name="Draw from the stock pile" />
+                        <Button Command="{Binding DrawDiscardCommand}"
+                                Content="Draw _discard"
+                                automation:AutomationProperties.Name="Draw from the discard pile" />
+                        <Button Command="{Binding MeldCommand}"
+                                Content="_Meld selected"
+                                automation:AutomationProperties.Name="Meld the selected cards" />
+                        <Button Command="{Binding DiscardCommand}"
+                                Content="D_iscard selected"
+                                automation:AutomationProperties.Name="Discard the selected card" />
+                        <Button Command="{Binding EndTurnCommand}"
+                                Content="_End turn"
+                                automation:AutomationProperties.Name="End the turn by discarding the selected card" />
+                        <Button Command="{Binding NextRoundCommand}"
+                                Content="_Next round"
+                                automation:AutomationProperties.Name="Start the next round" />
                     </WrapPanel>
                 </GroupBox>
 
@@ -153,8 +165,12 @@
                         <TextBox Text="{Binding MatchFilePath, UpdateSourceTrigger=PropertyChanged}"
                                  automation:AutomationProperties.Name="Match snapshot path" />
                         <WrapPanel>
-                            <Button Command="{Binding SaveMatchCommand}" Content="_Save match" />
-                            <Button Command="{Binding LoadMatchCommand}" Content="_Load match" />
+                            <Button Command="{Binding SaveMatchCommand}"
+                                    Content="_Save match"
+                                    automation:AutomationProperties.Name="Save the current match snapshot" />
+                            <Button Command="{Binding LoadMatchCommand}"
+                                    Content="_Load match"
+                                    automation:AutomationProperties.Name="Load a match snapshot from disk" />
                         </WrapPanel>
                     </StackPanel>
                 </GroupBox>

@@ -429,10 +429,10 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
                 .Concat(catalog.Commands.Select(command => $"- {FormatCommandText(command.Command)}: {command.Description}")));
     }
 
-    private void RememberRecentMatch(string path, string action)
+    private void RememberRecentMatch(string path, string actionDescription)
     {
         var fullPath = Path.GetFullPath(path);
-        var updated = new[] { RecentMatchEntryViewModel.Create(fullPath, action, TableOverview.RoundNumber, TableOverview.CurrentPlayerName, TableOverview.TurnPhase) }
+        var updated = new[] { RecentMatchEntryViewModel.Create(fullPath, actionDescription, TableOverview.RoundNumber, TableOverview.CurrentPlayerName, TableOverview.TurnPhase) }
             .Concat(RecentMatches.Where(entry => !string.Equals(entry.Path, fullPath, StringComparison.OrdinalIgnoreCase)))
             .Take(5)
             .ToArray();
@@ -931,8 +931,8 @@ public sealed record RecentMatchEntryViewModel(string Path, string Summary)
 {
     public string DisplayText => $"{Summary} — {Path}";
 
-    public static RecentMatchEntryViewModel Create(string path, string action, int roundNumber, string currentPlayerName, string turnPhase) =>
-        new(path, $"{action}: round {roundNumber}, player {currentPlayerName}, phase {turnPhase}");
+    public static RecentMatchEntryViewModel Create(string path, string actionDescription, int roundNumber, string currentPlayerName, string turnPhase) =>
+        new(path, $"{actionDescription}: round {roundNumber}, player {currentPlayerName}, phase {turnPhase}");
 }
 
 internal static class CardFormatter
