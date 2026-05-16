@@ -11,13 +11,13 @@ public static class CliApplication
         return string.Join(
             Environment.NewLine,
             "Welcome to CanastaNET!",
-            "This command-line app currently exposes the Milestone 1 engine foundation.",
+            "This command-line app currently exposes the Milestone 2 core rules and scoring engine.",
             string.Empty,
             engine.CreateMockGameSummary(),
             string.Empty,
             "Next steps:",
-            "- Implement meld rules and scoring",
-            "- Add round-ending rules beyond stock exhaustion",
-            "- Expand CLI commands");
+            "- Add interactive CLI commands",
+            "- Track multi-round match totals and history",
+            "- Expand save/load and diagnostics support");
     }
 }
