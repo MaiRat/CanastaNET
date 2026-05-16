@@ -5,7 +5,7 @@ CanastaNET is a .NET/C# Canasta project with a Canasta game engine. The reposito
 ## Project structure
 
 - `engine/` - core game engine project and round-state APIs
-- `cli/` - command-line app for inspecting the current engine foundation
+- `cli/` - interactive command-line app for match setup, gameplay, and state inspection
 - `docs/` - project notes and future documentation space
 - `tests/` - automated tests for engine behavior
 
@@ -22,10 +22,16 @@ CanastaNET is a .NET/C# Canasta project with a Canasta game engine. The reposito
    dotnet build CanastaNET.slnx
    ```
 
-3. Run the CLI skeleton:
+3. Run the CLI:
 
    ```bash
    dotnet run --project cli/CanastaNET.Cli
+   ```
+
+   For a deterministic session, pass a shuffle seed:
+
+   ```bash
+   dotnet run --project cli/CanastaNET.Cli -- --seed 42
    ```
 
 4. Run the tests:

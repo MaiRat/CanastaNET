@@ -73,6 +73,12 @@ This roadmap breaks the project into incremental milestones so the codebase can 
 
 **Goal:** make the command-line app a complete playable and debugging surface.
 
+### Repository coverage
+
+- `CliApplication` now hosts an interactive command loop for seeded match setup, turn actions, state inspection, and round progression.
+- The CLI surfaces engine validation errors together with currently legal follow-up commands for debugging and manual play.
+- CLI-focused tests cover seeded startup, command parsing/dispatch, inspection output, and scripted round progression.
+
 ### Tasks
 
 - Replace placeholder text with a command loop for game setup, turn actions, and round progression.
@@ -85,6 +91,10 @@ This roadmap breaks the project into incremental milestones so the codebase can 
 
 - Requires Milestone 1 for state inspection.
 - Milestone 2 is required before the CLI can support full legal gameplay.
+
+### Validation criteria
+
+- Run `dotnet test tests/CanastaNET.Engine.Tests` to verify engine and CLI command-loop coverage.
 
 ## Milestone 5 - CLI multiplayer and operator tooling (P1)
 
