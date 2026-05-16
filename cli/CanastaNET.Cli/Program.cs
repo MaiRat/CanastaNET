@@ -1,4 +1,3 @@
 ﻿using CanastaNET.Cli;
-using CanastaNET.Engine;
 
-Console.WriteLine(CliApplication.CreateWelcomeText(new GameEngine()));
+return CliApplication.Run(args, Console.In, Console.Out);
