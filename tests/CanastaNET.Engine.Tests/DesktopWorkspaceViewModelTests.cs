@@ -15,6 +15,9 @@ public class DesktopWorkspaceViewModelTests
         Assert.NotEmpty(workspace.DiscardPile.Cards);
         Assert.Equal(workspace.ScoreSummary.TeamScores.Count, workspace.TeamMelds.Count);
         Assert.Contains(workspace.LegalCommands, command => command.CommandText == "draw stock");
+        Assert.Contains("draw stock", workspace.NextActionPrompt!, StringComparison.OrdinalIgnoreCase);
+        Assert.NotEmpty(workspace.RulesHelpLines);
+        Assert.NotEmpty(workspace.SetupPresets);
     }
 
     [Fact]
@@ -66,5 +69,60 @@ public class DesktopWorkspaceViewModelTests
         workspace.StartMatchCommand.Execute(null);
 
         Assert.Contains("Seed values must be integers", workspace.FeedbackMessage!, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void ApplySetupPreset_PrefillsOnboardingConfiguration()
+    {
+        var workspace = new CanastaWorkspaceViewModel
+        {
+            SelectedSetupPresetName = "Quick duo practice"
+        };
+
+        workspace.ApplySetupPresetCommand.Execute(null);
+
+        Assert.Equal("North, South", workspace.Setup.PlayerNamesCsv);
+        Assert.Equal(1500, workspace.Setup.WinningScore);
+        Assert.Equal("7", workspace.Setup.SeedText);
+        Assert.Contains("Applied", workspace.FeedbackMessage!, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void SaveAndLoadSnapshot_RestoresWorkspaceState_AndTracksRecentHistory()
+    {
+        var workspace = new CanastaWorkspaceViewModel();
+        var snapshotPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.canasta.json");
+
+        try
+        {
+            workspace.Setup.SeedText = "7";
+            workspace.StartMatchCommand.Execute(null);
+            workspace.DrawStockCommand.Execute(null);
+            var savedTurnPhase = workspace.TableOverview.TurnPhase;
+            var savedCurrentPlayer = workspace.TableOverview.CurrentPlayerName;
+            workspace.MatchFilePath = snapshotPath;
+
+            workspace.SaveMatchCommand.Execute(null);
+
+            var currentHand = workspace.PlayerHands.Single(hand => hand.IsCurrentPlayer);
+            currentHand.Cards[0].IsSelected = true;
+            workspace.EndTurnCommand.Execute(null);
+            Assert.NotEqual(savedCurrentPlayer, workspace.TableOverview.CurrentPlayerName);
+
+            workspace.LoadMatchCommand.Execute(null);
+
+            Assert.Equal(savedTurnPhase, workspace.TableOverview.TurnPhase);
+            Assert.Equal(savedCurrentPlayer, workspace.TableOverview.CurrentPlayerName);
+            Assert.Contains(workspace.RecentMatches, entry => string.Equals(entry.Path, snapshotPath, StringComparison.OrdinalIgnoreCase));
+            Assert.Equal(snapshotPath, workspace.SelectedRecentMatchPath);
+            Assert.Contains("Loaded", workspace.FeedbackMessage!, StringComparison.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            if (File.Exists(snapshotPath))
+            {
+                File.Delete(snapshotPath);
+            }
+        }
     }
 }

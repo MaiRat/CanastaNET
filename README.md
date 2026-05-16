@@ -68,7 +68,7 @@ CanastaNET is a .NET/C# Canasta project with a Canasta game engine. The reposito
    dotnet test tests/CanastaNET.Engine.Tests
    ```
 
-## Desktop UI foundation
+## Desktop UI
 
 - Build the desktop shell:
 
@@ -92,8 +92,12 @@ CanastaNET is a .NET/C# Canasta project with a Canasta game engine. The reposito
 
 On a Windows machine, launch the desktop app and verify:
 
+- the onboarding panel can apply setup presets, show rules help, and surface a clear legal-next-action prompt
 - the setup panel can start a seeded match with custom players and scoring options
+- Ctrl+N / Ctrl+S / Ctrl+O / Ctrl+D trigger the expected start, save, load, and draw workflows
+- the snapshot panel can save the current match, load it again, and populate recent-match history entries
 - the table overview tab reflects the current player, turn phase, stock count, discard top card, and legal commands
 - the player hands tab allows selecting the current player's cards for draw/meld/discard workflows
 - the melds, discard pile, and score summary tabs update after each action
+- the rules help tab provides onboarding reminders for draw, meld, discard, and snapshot workflows
 - invalid actions show validation feedback from the engine, and `Next round` becomes available after a completed round

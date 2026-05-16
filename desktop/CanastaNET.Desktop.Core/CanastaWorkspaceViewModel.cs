@@ -7,38 +7,120 @@ namespace CanastaNET.Desktop.Core;
 
 public sealed class CanastaWorkspaceViewModel : ObservableObject
 {
+    private static readonly SetupPresetViewModel[] BuiltInSetupPresets =
+    [
+        new(
+            "Classic 4-player table",
+            "Standard four-player setup for a full table with deterministic seeds for quick regression play.",
+            "North, East, South, West",
+            TeamCount: 2,
+            DealerIndex: 0,
+            DeckCount: 2,
+            CardsPerPlayer: 11,
+            WinningScore: 5000,
+            SeedText: "42",
+            NextRoundSeedText: "43"),
+        new(
+            "Quick duo practice",
+            "Two-player practice match with a lower winning score for faster onboarding loops.",
+            "North, South",
+            TeamCount: 2,
+            DealerIndex: 0,
+            DeckCount: 2,
+            CardsPerPlayer: 11,
+            WinningScore: 1500,
+            SeedText: "7",
+            NextRoundSeedText: "8"),
+        new(
+            "Long match rematch",
+            "Keep the default table but shorten the path to repeatable rematches by pre-populating the next-round seed.",
+            "North, East, South, West",
+            TeamCount: 2,
+            DealerIndex: 1,
+            DeckCount: 2,
+            CardsPerPlayer: 11,
+            WinningScore: 3000,
+            SeedText: "99",
+            NextRoundSeedText: "100")
+    ];
+
+    private static readonly string[] RulesHelpChecklist =
+    [
+        "Each turn starts with a draw. Use the legal action prompt if you are unsure whether stock or discard is available.",
+        "Teams must satisfy their current opening meld requirement before laying down their first meld.",
+        "Wild cards can extend melds, but natural cards are still required to anchor them.",
+        "Ending a turn requires discarding exactly one card unless the round is already complete.",
+        "Use save/load snapshots to pause a match, reproduce bugs, or replay edge-case rounds."
+    ];
+
     private readonly GameEngine engine = new();
     private readonly DelegateCommand startMatchCommand;
+    private readonly DelegateCommand applySetupPresetCommand;
     private readonly DelegateCommand drawStockCommand;
     private readonly DelegateCommand drawDiscardCommand;
     private readonly DelegateCommand meldCommand;
     private readonly DelegateCommand discardCommand;
     private readonly DelegateCommand endTurnCommand;
     private readonly DelegateCommand nextRoundCommand;
+    private readonly DelegateCommand saveMatchCommand;
+    private readonly DelegateCommand loadMatchCommand;
+    private readonly DelegateCommand loadRecentMatchCommand;
 
     private GameMatchState matchState;
     private string? feedbackMessage;
+    private string? nextActionPrompt;
     private string? selectedMeldRankName;
+    private string? selectedSetupPresetName;
+    private string matchFilePath = Path.Combine(Path.GetTempPath(), "canasta-match.json");
+    private string? selectedRecentMatchPath;
 
     public CanastaWorkspaceViewModel()
     {
         Setup = MatchSetupViewModel.CreateDefault();
+        SetupPresets = Array.AsReadOnly(BuiltInSetupPresets);
+        RulesHelpLines = Array.AsReadOnly(RulesHelpChecklist);
         AvailableMeldRanks = Array.AsReadOnly(Card.NonJokerRanks.Select(rank => rank.ToString()).ToArray());
         matchState = engine.StartMatch();
 
         startMatchCommand = new DelegateCommand(StartMatch);
+        applySetupPresetCommand = new DelegateCommand(ApplySelectedSetupPreset, CanApplySelectedSetupPreset);
         drawStockCommand = new DelegateCommand(() => ApplyRoundCommand(GameCommand.DrawFromStock(), "Drew the top stock card."), CanInteractWithCurrentRound);
         drawDiscardCommand = new DelegateCommand(DrawFromDiscardPile, CanInteractWithCurrentRound);
         meldCommand = new DelegateCommand(MeldSelectedCards, CanMeldSelectedCards);
         discardCommand = new DelegateCommand(() => DiscardSelectedCard("Discarded the selected card."), CanDiscardSelectedCard);
         endTurnCommand = new DelegateCommand(() => DiscardSelectedCard("Ended the turn by discarding the selected card."), CanDiscardSelectedCard);
         nextRoundCommand = new DelegateCommand(StartNextRound, () => matchState.CanStartNextRound);
+        saveMatchCommand = new DelegateCommand(SaveMatchSnapshot, CanUseMatchFilePath);
+        loadMatchCommand = new DelegateCommand(LoadMatchSnapshot, CanUseMatchFilePath);
+        loadRecentMatchCommand = new DelegateCommand(LoadSelectedRecentMatch, CanLoadSelectedRecentMatch);
+        SelectedSetupPresetName = SetupPresets[0].Name;
         RefreshPresentation("Desktop workspace ready.");
     }
 
     public MatchSetupViewModel Setup { get; }
 
+    public IReadOnlyList<SetupPresetViewModel> SetupPresets { get; }
+
+    public IReadOnlyList<string> RulesHelpLines { get; }
+
     public IReadOnlyList<string> AvailableMeldRanks { get; }
+
+    public string? SelectedSetupPresetName
+    {
+        get => selectedSetupPresetName;
+        set
+        {
+            if (SetProperty(ref selectedSetupPresetName, string.IsNullOrWhiteSpace(value) ? null : value))
+            {
+                OnPropertyChanged(nameof(SelectedSetupPresetDescription));
+                RaiseCommandCanExecuteChanged();
+            }
+        }
+    }
+
+    public string SelectedSetupPresetDescription =>
+        SetupPresets.FirstOrDefault(preset => string.Equals(preset.Name, SelectedSetupPresetName, StringComparison.Ordinal))?.Description
+        ?? "Choose a preset to prefill the setup panel with a ready-to-play configuration.";
 
     public string? SelectedMeldRankName
     {
@@ -50,6 +132,36 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
     {
         get => feedbackMessage;
         private set => SetProperty(ref feedbackMessage, value);
+    }
+
+    public string? NextActionPrompt
+    {
+        get => nextActionPrompt;
+        private set => SetProperty(ref nextActionPrompt, value);
+    }
+
+    public string MatchFilePath
+    {
+        get => matchFilePath;
+        set
+        {
+            if (SetProperty(ref matchFilePath, value))
+            {
+                RaiseCommandCanExecuteChanged();
+            }
+        }
+    }
+
+    public string? SelectedRecentMatchPath
+    {
+        get => selectedRecentMatchPath;
+        set
+        {
+            if (SetProperty(ref selectedRecentMatchPath, string.IsNullOrWhiteSpace(value) ? null : value))
+            {
+                RaiseCommandCanExecuteChanged();
+            }
+        }
     }
 
     public TableOverviewViewModel TableOverview { get; private set; } = TableOverviewViewModel.Empty;
@@ -64,7 +176,11 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
 
     public IReadOnlyList<LegalCommandViewModel> LegalCommands { get; private set; } = [];
 
+    public IReadOnlyList<RecentMatchEntryViewModel> RecentMatches { get; private set; } = [];
+
     public ICommand StartMatchCommand => startMatchCommand;
+
+    public ICommand ApplySetupPresetCommand => applySetupPresetCommand;
 
     public ICommand DrawStockCommand => drawStockCommand;
 
@@ -78,11 +194,23 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
 
     public ICommand NextRoundCommand => nextRoundCommand;
 
+    public ICommand SaveMatchCommand => saveMatchCommand;
+
+    public ICommand LoadMatchCommand => loadMatchCommand;
+
+    public ICommand LoadRecentMatchCommand => loadRecentMatchCommand;
+
     private bool CanInteractWithCurrentRound() => !TableOverview.IsRoundComplete;
+
+    private bool CanApplySelectedSetupPreset() => !string.IsNullOrWhiteSpace(SelectedSetupPresetName);
 
     private bool CanMeldSelectedCards() => !TableOverview.IsRoundComplete && GetSelectedCurrentPlayerCardIds().Count > 0;
 
     private bool CanDiscardSelectedCard() => !TableOverview.IsRoundComplete && GetSelectedCurrentPlayerCardIds().Count == 1;
+
+    private bool CanUseMatchFilePath() => !string.IsNullOrWhiteSpace(MatchFilePath);
+
+    private bool CanLoadSelectedRecentMatch() => !string.IsNullOrWhiteSpace(SelectedRecentMatchPath);
 
     private void StartMatch()
     {
@@ -97,6 +225,22 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
             FeedbackMessage = exception.Message;
             RaiseCommandCanExecuteChanged();
         }
+    }
+
+    private void ApplySelectedSetupPreset()
+    {
+        var preset = SetupPresets.FirstOrDefault(candidate => string.Equals(candidate.Name, SelectedSetupPresetName, StringComparison.Ordinal));
+        if (preset is null)
+        {
+            FeedbackMessage = "Choose a setup preset before applying it.";
+            RaiseCommandCanExecuteChanged();
+            return;
+        }
+
+        preset.Apply(Setup);
+        MatchFilePath = Path.Combine(Path.GetTempPath(), preset.DefaultSnapshotFileName);
+        FeedbackMessage = $"Applied the `{preset.Name}` preset.";
+        RaiseCommandCanExecuteChanged();
     }
 
     private void DrawFromDiscardPile()
@@ -155,6 +299,51 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
         }
     }
 
+    private void SaveMatchSnapshot()
+    {
+        try
+        {
+            var savedPath = MatchSnapshotStorage.SaveMatch(engine, matchState, MatchFilePath);
+            RememberRecentMatch(savedPath, "Saved snapshot");
+            FeedbackMessage = $"Saved the current match snapshot to `{savedPath}`.";
+            RaiseCommandCanExecuteChanged();
+        }
+        catch (Exception exception) when (exception is ArgumentException or IOException or UnauthorizedAccessException)
+        {
+            FeedbackMessage = $"Unable to save the match snapshot: {exception.Message}";
+            RaiseCommandCanExecuteChanged();
+        }
+    }
+
+    private void LoadMatchSnapshot()
+    {
+        try
+        {
+            var (loadedState, loadedPath) = MatchSnapshotStorage.LoadMatch(engine, MatchFilePath);
+            matchState = loadedState;
+            RememberRecentMatch(loadedPath, "Loaded snapshot");
+            RefreshPresentation($"Loaded a match snapshot from `{loadedPath}`.");
+        }
+        catch (Exception exception) when (exception is ArgumentException or IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
+        {
+            FeedbackMessage = $"Unable to load the match snapshot: {exception.Message}";
+            RaiseCommandCanExecuteChanged();
+        }
+    }
+
+    private void LoadSelectedRecentMatch()
+    {
+        if (string.IsNullOrWhiteSpace(SelectedRecentMatchPath))
+        {
+            FeedbackMessage = "Select a recent match entry before loading it.";
+            RaiseCommandCanExecuteChanged();
+            return;
+        }
+
+        MatchFilePath = SelectedRecentMatchPath;
+        LoadMatchSnapshot();
+    }
+
     private void ApplyRoundCommand(GameCommand command, string successMessage)
     {
         var result = engine.Apply(matchState, command);
@@ -199,6 +388,7 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
 
         LegalCommands = catalog.Commands.Select(command => LegalCommandViewModel.Create(command)).ToArray();
         OnPropertyChanged(nameof(LegalCommands));
+        NextActionPrompt = CreateNextActionPrompt(catalog);
 
         SelectedMeldRankName = null;
         RaiseCommandCanExecuteChanged();
@@ -220,6 +410,10 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
         discardCommand.RaiseCanExecuteChanged();
         endTurnCommand.RaiseCanExecuteChanged();
         nextRoundCommand.RaiseCanExecuteChanged();
+        applySetupPresetCommand.RaiseCanExecuteChanged();
+        saveMatchCommand.RaiseCanExecuteChanged();
+        loadMatchCommand.RaiseCanExecuteChanged();
+        loadRecentMatchCommand.RaiseCanExecuteChanged();
     }
 
     private static string FormatLegalCommands(RoundCommandCatalog catalog)
@@ -233,6 +427,37 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
             Environment.NewLine,
             new[] { $"Legal commands for {catalog.TurnPhase}:" }
                 .Concat(catalog.Commands.Select(command => $"- {FormatCommandText(command.Command)}: {command.Description}")));
+    }
+
+    private void RememberRecentMatch(string path, string action)
+    {
+        var fullPath = Path.GetFullPath(path);
+        var updated = new[] { RecentMatchEntryViewModel.Create(fullPath, action, TableOverview.RoundNumber, TableOverview.CurrentPlayerName, TableOverview.TurnPhase) }
+            .Concat(RecentMatches.Where(entry => !string.Equals(entry.Path, fullPath, StringComparison.OrdinalIgnoreCase)))
+            .Take(5)
+            .ToArray();
+
+        RecentMatches = updated;
+        OnPropertyChanged(nameof(RecentMatches));
+        SelectedRecentMatchPath = fullPath;
+    }
+
+    private static string CreateNextActionPrompt(RoundCommandCatalog catalog)
+    {
+        if (catalog.Commands.Count == 0)
+        {
+            return "No legal next action is available from the current state.";
+        }
+
+        var suggestions = string.Join(", ", catalog.Commands.Take(3).Select(command => FormatCommandText(command.Command)));
+
+        return catalog.TurnPhase switch
+        {
+            TurnPhase.AwaitingDraw => $"Legal next actions: {suggestions}. Start the turn by drawing before attempting a meld or discard.",
+            TurnPhase.AwaitingDiscard => $"Legal next actions: {suggestions}. Finish the turn by discarding exactly one card when you are ready.",
+            TurnPhase.Completed => "The round is complete. Review the summary and start the next round when the table is ready.",
+            _ => $"Legal next actions: {suggestions}."
+        };
     }
 
     internal static string FormatCommandText(GameCommand command) => command.CommandType switch
@@ -656,6 +881,43 @@ public sealed record LegalCommandViewModel(string CommandText, string Descriptio
 {
     public static LegalCommandViewModel Create(LegalGameCommand command) =>
         new(CanastaWorkspaceViewModel.FormatCommandText(command.Command), command.Description);
+}
+
+public sealed record SetupPresetViewModel(
+    string Name,
+    string Description,
+    string PlayerNamesCsv,
+    int TeamCount,
+    int DealerIndex,
+    int DeckCount,
+    int CardsPerPlayer,
+    int WinningScore,
+    string? SeedText,
+    string? NextRoundSeedText)
+{
+    public string DefaultSnapshotFileName => $"{Name.ToLowerInvariant().Replace(' ', '-').Replace("'", string.Empty)}.canasta.json";
+
+    public void Apply(MatchSetupViewModel setup)
+    {
+        ArgumentNullException.ThrowIfNull(setup);
+
+        setup.PlayerNamesCsv = PlayerNamesCsv;
+        setup.TeamCount = TeamCount;
+        setup.DealerIndex = DealerIndex;
+        setup.DeckCount = DeckCount;
+        setup.CardsPerPlayer = CardsPerPlayer;
+        setup.WinningScore = WinningScore;
+        setup.SeedText = SeedText;
+        setup.NextRoundSeedText = NextRoundSeedText;
+    }
+}
+
+public sealed record RecentMatchEntryViewModel(string Path, string Summary)
+{
+    public string DisplayText => $"{Summary} — {Path}";
+
+    public static RecentMatchEntryViewModel Create(string path, string action, int roundNumber, string currentPlayerName, string turnPhase) =>
+        new(path, $"{action}: round {roundNumber}, player {currentPlayerName}, phase {turnPhase}");
 }
 
 internal static class CardFormatter
