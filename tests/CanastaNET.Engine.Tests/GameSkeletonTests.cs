@@ -288,15 +288,16 @@ public class GameSkeletonTests
     }
 
     [Fact]
-    public void CliWelcomeTextIncludesMilestoneTwoStatus()
+    public void CliWelcomeTextIncludesMilestoneThreeStatus()
     {
         var text = CliApplication.CreateWelcomeText(new GameEngine());
 
         Assert.Contains("Welcome to CanastaNET!", text);
-        Assert.Contains("Milestone 2 core rules and scoring", text);
+        Assert.Contains("Milestone 3 match lifecycle and engine ergonomics foundation", text);
         Assert.Contains("Stock/discard draw flow with frozen discard handling", text);
         Assert.Contains("Next steps:", text);
         Assert.Contains("- Add interactive CLI commands", text);
+        Assert.Contains("- Add full gameplay command loops on top of the command/result APIs", text);
     }
 
     private static GameRoundState CreateRoundState(

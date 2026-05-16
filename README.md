@@ -1,6 +1,6 @@
 # CanastaNET
 
-CanastaNET is a .NET/C# Canasta project with a Canasta game engine. The repository now provides explicit setup and round-state modeling, meld validation, frozen-discard handling, round-end scoring, a small command-line entry point, and matching automated tests so future milestones can build on a stable core.
+CanastaNET is a .NET/C# Canasta project with a Canasta game engine. The repository now provides explicit setup and round-state modeling, meld validation, frozen-discard handling, round-end scoring, multi-round match lifecycle APIs, serialization-friendly snapshots, a small command-line entry point, and matching automated tests so future milestones can build on a stable core.
 
 ## Project structure
 
