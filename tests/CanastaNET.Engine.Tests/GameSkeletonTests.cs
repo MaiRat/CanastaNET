@@ -288,12 +288,12 @@ public class GameSkeletonTests
     }
 
     [Fact]
-    public void CliWelcomeTextIncludesMilestoneFourStatus()
+    public void CliWelcomeTextIncludesCliStatus()
     {
         var text = CliApplication.CreateWelcomeText(new GameEngine());
 
         Assert.Contains("Welcome to CanastaNET!", text);
-        Assert.Contains("Milestone 4 CLI supports interactive match setup, turn actions, state inspection, and round progression", text);
+        Assert.Contains("The CLI supports interactive match setup, turn actions, state inspection, shared-terminal workflows, and regression scripts.", text);
         Assert.Contains("Use launch options like `--seed 42`", text);
         Assert.Contains("Stock/discard draw flow with frozen discard handling", text);
         Assert.Contains("Type `help`", text);

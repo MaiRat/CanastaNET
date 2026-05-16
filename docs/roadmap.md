@@ -100,6 +100,13 @@ This roadmap breaks the project into incremental milestones so the codebase can 
 
 **Goal:** make the CLI useful for local multiplayer sessions and developer workflows.
 
+### Repository coverage
+
+- The CLI now supports shared-terminal prompts, optional hidden-hand reveals, and optional per-turn screen clearing for local multiplayer.
+- Script files can replay deterministic CLI sessions for regression coverage from either startup options or in-session commands.
+- Developer commands can dump and load match or round snapshots and enable trace output for legal-command decisions.
+- README usage notes document multiplayer, replay, and operator workflows for manual QA and rule verification.
+
 ### Tasks
 
 - Support multiple human players sharing a terminal, with optional hidden-hand prompts or per-turn screen clearing.
@@ -110,6 +117,10 @@ This roadmap breaks the project into incremental milestones so the codebase can 
 ### Dependencies
 
 - Requires Milestone 4.
+
+### Validation criteria
+
+- Run `dotnet test tests/CanastaNET.Engine.Tests` to verify shared-terminal, replay, snapshot, and trace command coverage.
 
 ## Milestone 6 - WPF UI foundation (P1)
 
