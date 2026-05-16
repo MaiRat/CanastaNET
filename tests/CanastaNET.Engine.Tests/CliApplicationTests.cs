@@ -85,6 +85,92 @@ public class CliApplicationTests
         Assert.Contains("Shuffle seed: 11", output);
     }
 
+    [Fact]
+    public void Run_SharedTerminalModeCanHideHandsUntilReveal()
+    {
+        var output = RunCli(
+            args: ["--seed", "42", "--shared-terminal", "--hidden-hands"],
+            commands:
+            [
+                "hand",
+                "hand reveal",
+                "exit"
+            ]);
+
+        Assert.Contains("Shared terminal: pass control to East", output);
+        Assert.Contains("Use `hand reveal` after the handoff to display the current player's cards.", output);
+        Assert.Contains("Hand for East is hidden. Re-run `hand reveal` to display cards.", output);
+        Assert.Contains("Hand for East (player 1, team 1):", output);
+    }
+
+    [Fact]
+    public void Run_CanReplayScriptsAndTraceCommands()
+    {
+        var scriptPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.txt");
+
+        try
+        {
+            File.WriteAllLines(
+                scriptPath,
+                [
+                    "# replay a deterministic turn",
+                    "trace on",
+                    "draw stock"
+                ]);
+
+            var output = RunCli(
+                args: ["--seed", "42", "--script", scriptPath],
+                commands:
+                [
+                    "exit"
+                ]);
+
+            Assert.Contains($"Running script `{scriptPath}`.", output);
+            Assert.Contains("Command tracing enabled.", output);
+            Assert.Contains("Applied `draw stock`.", output);
+            Assert.Contains("Trace snapshot:", output);
+        }
+        finally
+        {
+            if (File.Exists(scriptPath))
+            {
+                File.Delete(scriptPath);
+            }
+        }
+    }
+
+    [Fact]
+    public void Run_CanDumpAndReloadMatchSnapshots()
+    {
+        var snapshotPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.json");
+
+        try
+        {
+            var output = RunCli(
+                args: ["--seed", "42"],
+                commands:
+                [
+                    $"dump match {snapshotPath}",
+                    "draw stock",
+                    $"load match {snapshotPath}",
+                    "status",
+                    "exit"
+                ]);
+
+            Assert.True(File.Exists(snapshotPath));
+            Assert.Contains($"Wrote match snapshot to `{snapshotPath}`.", output);
+            Assert.Contains($"Loaded match snapshot from `{snapshotPath}`.", output);
+            Assert.Contains("- Turn phase: AwaitingDraw", output);
+        }
+        finally
+        {
+            if (File.Exists(snapshotPath))
+            {
+                File.Delete(snapshotPath);
+            }
+        }
+    }
+
     private static string RunCli(string[] args, string[] commands)
     {
         using var input = new StringReader(string.Join(Environment.NewLine, commands) + Environment.NewLine);
