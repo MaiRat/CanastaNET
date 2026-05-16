@@ -81,6 +81,7 @@ public static class CliApplication
 
 internal sealed class CliSession
 {
+    // ANSI clear-screen sequence for terminals that support VT100-style escape codes.
     private const string ClearScreenSequence = "\u001b[2J\u001b[H";
     private static readonly JsonSerializerOptions SnapshotJsonOptions = new()
     {
@@ -347,9 +348,9 @@ internal sealed class CliSession
         try
         {
             var commands = File.ReadAllLines(path)
-                .Select((line, index) => new ScriptCommand(index + 1, line))
+                .Select((line, index) => new ScriptCommand(index + 1, line.Trim()))
                 .Where(command => !string.IsNullOrWhiteSpace(command.CommandLine))
-                .Where(command => !command.CommandLine.TrimStart().StartsWith('#'))
+                .Where(command => !command.CommandLine.StartsWith('#'))
                 .ToArray();
 
             var builder = new StringBuilder();
@@ -521,7 +522,7 @@ internal sealed class CliSession
             return null;
         }
 
-        var key = $"{matchState.RoundHistory.Count}:{matchState.CurrentRound.CurrentPlayerIndex}:{matchState.CurrentRound.TurnPhase}:{matchState.CurrentRound.CompletedTurnCount}";
+        var key = CreatePrePromptKey();
         if (string.Equals(key, lastPrePromptKey, StringComparison.Ordinal))
         {
             return null;
@@ -542,6 +543,9 @@ internal sealed class CliSession
 
         return string.Join(Environment.NewLine, lines);
     }
+
+    private string CreatePrePromptKey() =>
+        $"{matchState.RoundHistory.Count}:{matchState.CurrentRound.CurrentPlayerIndex}:{matchState.CurrentRound.TurnPhase}:{matchState.CurrentRound.CompletedTurnCount}";
 
     private string FormatHand(IReadOnlyList<string> arguments)
     {
