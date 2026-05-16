@@ -9,11 +9,11 @@ public sealed class GameEngine
     [
         "Card, deck, hand, team, and meld modeling",
         "Controlled setup and round state snapshots",
-        "Shuffle, deal, draw, discard, and turn progression",
-        "Configurable player order, team count, and house-rule-ready round setup"
+        "Stock/discard draw flow with frozen discard handling",
+        "Meld validation, going out rules, and round scoring"
     ];
 
-    public string GetStartupMessage() => "CanastaNET engine foundation ready.";
+    public string GetStartupMessage() => "CanastaNET core rules ready.";
 
     public IReadOnlyList<string> GetPlannedSubsystems() => ImplementedSubsystems;
 
@@ -68,7 +68,8 @@ public sealed class GameEngine
             .Select(teamIndex => new TeamState(
                 teamIndex,
                 players.Where(player => player.TeamIndex == teamIndex).Select(player => player.PlayerIndex),
-                []))
+                [],
+                roundConfiguration.TeamStartingScores[teamIndex]))
             .ToArray();
 
         return new GameRoundState(
@@ -88,7 +89,9 @@ public sealed class GameEngine
             firstPlayerIndex,
             TurnPhase.AwaitingDraw,
             0,
-            null);
+            null,
+            0,
+            false);
     }
 
     public GameRoundState DrawFromStock(GameRoundState roundState)
@@ -103,21 +106,19 @@ public sealed class GameEngine
 
         if (roundState.StockPile.Count == 0)
         {
-            return new GameRoundState(
-                roundState.Configuration,
-                roundState.Setup,
+            return CreateCompletedRoundState(
+                roundState,
                 roundState.Players,
                 roundState.Teams,
                 roundState.StockPile,
                 roundState.DiscardPile,
-                roundState.DealerIndex,
-                roundState.CurrentPlayerIndex,
-                TurnPhase.Completed,
+                RoundEndReason.StockExhausted,
+                $"{roundState.CurrentPlayer.Name} cannot draw because the stock pile is empty.",
                 roundState.CompletedTurnCount,
-                new RoundSummaryData(
-                    RoundEndReason.StockExhausted,
-                    $"{roundState.CurrentPlayer.Name} cannot draw because the stock pile is empty.",
-                    roundState.CompletedTurnCount));
+                endedByPlayerIndex: null,
+                concealedHand: false,
+                currentTurnMeldPoints: roundState.CurrentTurnMeldPoints,
+                currentTurnStartedWithOpenTeam: roundState.CurrentTurnStartedWithOpenTeam);
         }
 
         var stockPile = roundState.StockPile.ToList();
@@ -146,7 +147,184 @@ public sealed class GameEngine
             roundState.CurrentPlayerIndex,
             TurnPhase.AwaitingDiscard,
             roundState.CompletedTurnCount,
-            null);
+            null,
+            roundState.CurrentTurnMeldPoints,
+            roundState.CurrentTurnStartedWithOpenTeam);
+    }
+
+    public GameRoundState DrawFromDiscardPile(GameRoundState roundState, IEnumerable<Card>? matchingCardsFromHand = null)
+    {
+        ArgumentNullException.ThrowIfNull(roundState);
+        EnsureRoundIsActive(roundState);
+
+        if (roundState.TurnPhase != TurnPhase.AwaitingDraw)
+        {
+            throw new GameRuleViolationException($"{roundState.CurrentPlayer.Name} must discard before drawing again.");
+        }
+
+        if (roundState.DiscardPile.IsEmpty)
+        {
+            throw new GameRuleViolationException("The discard pile is empty.");
+        }
+
+        var topCard = roundState.DiscardPile.TopCard;
+
+        if (topCard.IsWild)
+        {
+            throw new GameRuleViolationException("Wild cards cannot be taken directly from the discard pile.");
+        }
+
+        var currentPlayer = roundState.CurrentPlayer;
+        var currentTeam = roundState.Teams[currentPlayer.TeamIndex];
+        var existingMeld = currentTeam.Melds.FirstOrDefault(meld => meld.Rank == topCard.Rank);
+        var selectedCards = (matchingCardsFromHand ?? []).ToArray();
+        var naturalMatches = selectedCards.Where(card => !card.IsWild).ToArray();
+
+        if (selectedCards.Any(card => card.IsWild))
+        {
+            throw new GameRuleViolationException("Discard pile pickups must be opened with natural cards from hand.");
+        }
+
+        if (naturalMatches.Any(card => card.Rank != topCard.Rank))
+        {
+            throw new GameRuleViolationException($"Discard pile pickups must use cards matching {topCard.Rank}.");
+        }
+
+        if (roundState.DiscardPile.IsFrozen)
+        {
+            if (naturalMatches.Length != 2)
+            {
+                throw new GameRuleViolationException($"The frozen discard pile requires two natural {topCard.Rank} cards from hand.");
+            }
+        }
+        else if (existingMeld is null && naturalMatches.Length < 2)
+        {
+            throw new GameRuleViolationException($"Taking the discard pile requires two natural {topCard.Rank} cards or an existing team meld.");
+        }
+
+        var updatedHand = RemoveCardsFromHand(currentPlayer.Hand, selectedCards);
+        var retainedDiscardCards = roundState.DiscardPile.SkipLast(1);
+        updatedHand.AddRange(retainedDiscardCards);
+
+        var players = roundState.Players.ToArray();
+        players[roundState.CurrentPlayerIndex] = new PlayerState(
+            currentPlayer.PlayerIndex,
+            currentPlayer.Name,
+            currentPlayer.TeamIndex,
+            updatedHand);
+
+        var addedMeldCards = selectedCards.Concat([topCard]).ToArray();
+        var teams = roundState.Teams.ToArray();
+        teams[currentTeam.TeamIndex] = ApplyCardsToTeamMeld(currentTeam, addedMeldCards, roundState.CurrentTurnMeldPoints, targetRankOverride: topCard.Rank);
+        var updatedTurnMeldPoints = roundState.CurrentTurnMeldPoints + GetCardPointTotal(addedMeldCards);
+
+        if (updatedHand.Count == 0)
+        {
+            EnsureCanGoOut(teams[currentTeam.TeamIndex], currentPlayer.Name);
+
+            return CreateCompletedRoundState(
+                roundState,
+                players,
+                teams,
+                roundState.StockPile,
+                new DiscardPileState([]),
+                RoundEndReason.PlayerWentOut,
+                $"{currentPlayer.Name} took the discard pile and went out.",
+                roundState.CompletedTurnCount + 1,
+                currentPlayer.PlayerIndex,
+                concealedHand: !roundState.CurrentTurnStartedWithOpenTeam,
+                currentTurnMeldPoints: updatedTurnMeldPoints,
+                currentTurnStartedWithOpenTeam: roundState.CurrentTurnStartedWithOpenTeam);
+        }
+
+        return new GameRoundState(
+            roundState.Configuration,
+            roundState.Setup,
+            players,
+            teams,
+            roundState.StockPile,
+            new DiscardPileState([]),
+            roundState.DealerIndex,
+            roundState.CurrentPlayerIndex,
+            TurnPhase.AwaitingDiscard,
+            roundState.CompletedTurnCount,
+            null,
+            updatedTurnMeldPoints,
+            roundState.CurrentTurnStartedWithOpenTeam);
+    }
+
+    public GameRoundState Meld(GameRoundState roundState, IEnumerable<Card> cards) =>
+        MeldCore(roundState, targetRankOverride: null, cards);
+
+    public GameRoundState Meld(GameRoundState roundState, CardRank targetRank, IEnumerable<Card> cards) =>
+        MeldCore(roundState, targetRank, cards);
+
+    private GameRoundState MeldCore(GameRoundState roundState, CardRank? targetRankOverride, IEnumerable<Card> cards)
+    {
+        ArgumentNullException.ThrowIfNull(roundState);
+        ArgumentNullException.ThrowIfNull(cards);
+        EnsureRoundIsActive(roundState);
+
+        if (roundState.TurnPhase != TurnPhase.AwaitingDiscard)
+        {
+            throw new GameRuleViolationException($"{roundState.CurrentPlayer.Name} must draw before melding.");
+        }
+
+        var cardsToMeld = cards.ToArray();
+
+        if (cardsToMeld.Length == 0)
+        {
+            throw new GameRuleViolationException("At least one card must be provided when melding.");
+        }
+
+        var currentPlayer = roundState.CurrentPlayer;
+        var updatedHand = RemoveCardsFromHand(currentPlayer.Hand, cardsToMeld);
+
+        var players = roundState.Players.ToArray();
+        players[roundState.CurrentPlayerIndex] = new PlayerState(
+            currentPlayer.PlayerIndex,
+            currentPlayer.Name,
+            currentPlayer.TeamIndex,
+            updatedHand);
+
+        var currentTeam = roundState.Teams[currentPlayer.TeamIndex];
+        var teams = roundState.Teams.ToArray();
+        teams[currentTeam.TeamIndex] = ApplyCardsToTeamMeld(currentTeam, cardsToMeld, roundState.CurrentTurnMeldPoints, targetRankOverride);
+        var updatedTurnMeldPoints = roundState.CurrentTurnMeldPoints + GetCardPointTotal(cardsToMeld);
+
+        if (updatedHand.Count == 0)
+        {
+            EnsureCanGoOut(teams[currentTeam.TeamIndex], currentPlayer.Name);
+
+            return CreateCompletedRoundState(
+                roundState,
+                players,
+                teams,
+                roundState.StockPile,
+                roundState.DiscardPile,
+                RoundEndReason.PlayerWentOut,
+                $"{currentPlayer.Name} went out.",
+                roundState.CompletedTurnCount + 1,
+                currentPlayer.PlayerIndex,
+                concealedHand: !roundState.CurrentTurnStartedWithOpenTeam,
+                currentTurnMeldPoints: updatedTurnMeldPoints,
+                currentTurnStartedWithOpenTeam: roundState.CurrentTurnStartedWithOpenTeam);
+        }
+
+        return new GameRoundState(
+            roundState.Configuration,
+            roundState.Setup,
+            players,
+            teams,
+            roundState.StockPile,
+            roundState.DiscardPile,
+            roundState.DealerIndex,
+            roundState.CurrentPlayerIndex,
+            TurnPhase.AwaitingDiscard,
+            roundState.CompletedTurnCount,
+            null,
+            updatedTurnMeldPoints,
+            roundState.CurrentTurnStartedWithOpenTeam);
     }
 
     public GameRoundState Discard(GameRoundState roundState, Card card)
@@ -179,6 +357,29 @@ public sealed class GameEngine
 
         var discardPile = roundState.DiscardPile.ToList();
         discardPile.Add(card);
+        var updatedDiscardPile = new DiscardPileState(discardPile);
+
+        if (updatedHand.Count == 0)
+        {
+            EnsureCanGoOut(roundState.Teams[currentPlayer.TeamIndex], currentPlayer.Name);
+
+            return CreateCompletedRoundState(
+                roundState,
+                players,
+                roundState.Teams,
+                roundState.StockPile,
+                updatedDiscardPile,
+                RoundEndReason.PlayerWentOut,
+                $"{currentPlayer.Name} discarded the final card and went out.",
+                roundState.CompletedTurnCount + 1,
+                currentPlayer.PlayerIndex,
+                concealedHand: !roundState.CurrentTurnStartedWithOpenTeam,
+                currentTurnMeldPoints: roundState.CurrentTurnMeldPoints,
+                currentTurnStartedWithOpenTeam: roundState.CurrentTurnStartedWithOpenTeam);
+        }
+
+        var nextPlayerIndex = GetNextPlayerIndex(roundState.CurrentPlayerIndex, roundState.Players.Count);
+        var nextTeamIndex = roundState.Players[nextPlayerIndex].TeamIndex;
 
         return new GameRoundState(
             roundState.Configuration,
@@ -186,13 +387,230 @@ public sealed class GameEngine
             players,
             roundState.Teams,
             roundState.StockPile,
-            new DiscardPileState(discardPile),
+            updatedDiscardPile,
             roundState.DealerIndex,
-            GetNextPlayerIndex(roundState.CurrentPlayerIndex, roundState.Players.Count),
+            nextPlayerIndex,
             TurnPhase.AwaitingDraw,
             roundState.CompletedTurnCount + 1,
-            null);
+            null,
+            0,
+            roundState.Teams[nextTeamIndex].Melds.Count > 0);
     }
+
+    private static GameRoundState CreateCompletedRoundState(
+        GameRoundState sourceRound,
+        IReadOnlyList<PlayerState> players,
+        IReadOnlyList<TeamState> teams,
+        DeckState stockPile,
+        DiscardPileState discardPile,
+        RoundEndReason endReason,
+        string message,
+        int completedTurnCount,
+        int? endedByPlayerIndex,
+        bool concealedHand,
+        int currentTurnMeldPoints,
+        bool currentTurnStartedWithOpenTeam)
+    {
+        var summary = CreateRoundSummary(
+            sourceRound.Configuration,
+            players,
+            teams,
+            endReason,
+            message,
+            completedTurnCount,
+            endedByPlayerIndex,
+            concealedHand);
+
+        return new GameRoundState(
+            sourceRound.Configuration,
+            sourceRound.Setup,
+            players,
+            teams,
+            stockPile,
+            discardPile,
+            sourceRound.DealerIndex,
+            sourceRound.CurrentPlayerIndex,
+            TurnPhase.Completed,
+            completedTurnCount,
+            summary,
+            currentTurnMeldPoints,
+            currentTurnStartedWithOpenTeam);
+    }
+
+    private static RoundSummaryData CreateRoundSummary(
+        GameConfiguration configuration,
+        IReadOnlyList<PlayerState> players,
+        IReadOnlyList<TeamState> teams,
+        RoundEndReason endReason,
+        string message,
+        int completedTurnCount,
+        int? endedByPlayerIndex,
+        bool concealedHand)
+    {
+        var wentOutTeamIndex = endedByPlayerIndex.HasValue ? players[endedByPlayerIndex.Value].TeamIndex : (int?)null;
+        var concealedTeamIndex = concealedHand ? wentOutTeamIndex : null;
+
+        var teamResults = teams
+            .Select(team => CreateTeamRoundResult(
+                configuration,
+                players,
+                team,
+                wentOutTeamIndex,
+                concealedTeamIndex))
+            .OrderBy(result => result.TeamIndex)
+            .ToArray();
+
+        return new RoundSummaryData(endReason, message, completedTurnCount, teamResults, endedByPlayerIndex);
+    }
+
+    private static TeamRoundResultData CreateTeamRoundResult(
+        GameConfiguration configuration,
+        IReadOnlyList<PlayerState> players,
+        TeamState team,
+        int? wentOutTeamIndex,
+        int? concealedTeamIndex)
+    {
+        var meldPoints = team.Melds.Sum(meld => meld.CardPointTotal);
+        var naturalCanastaCount = team.Melds.Count(meld => meld.CanastaKind == CanastaKind.Natural);
+        var mixedCanastaCount = team.Melds.Count(meld => meld.CanastaKind == CanastaKind.Mixed);
+        var canastaBonus = (naturalCanastaCount * 500) + (mixedCanastaCount * 300);
+        var goingOutBonus = team.TeamIndex == wentOutTeamIndex ? 100 : 0;
+        var concealedHandBonus = team.TeamIndex == concealedTeamIndex ? 100 : 0;
+        var handPenalty = players
+            .Where(player => player.TeamIndex == team.TeamIndex)
+            .SelectMany(player => player.Hand)
+            .Sum(card => card.PointValue);
+
+        return new TeamRoundResultData(
+            team.TeamIndex,
+            team.StartingScore,
+            GetInitialMeldRequirement(team.StartingScore),
+            meldPoints,
+            naturalCanastaCount,
+            mixedCanastaCount,
+            canastaBonus,
+            goingOutBonus,
+            concealedHandBonus,
+            handPenalty,
+            meldPoints + canastaBonus + goingOutBonus + concealedHandBonus - handPenalty,
+            team.TeamIndex == wentOutTeamIndex);
+    }
+
+    private static TeamState ApplyCardsToTeamMeld(
+        TeamState team,
+        IReadOnlyList<Card> cardsToAdd,
+        int currentTurnMeldPoints,
+        CardRank? targetRankOverride)
+    {
+        if (cardsToAdd.Count == 0)
+        {
+            throw new GameRuleViolationException("At least one card must be provided when melding.");
+        }
+
+        var targetRank = ResolveTargetRank(cardsToAdd, targetRankOverride);
+        var melds = team.Melds.ToList();
+        var existingMeldIndex = melds.FindIndex(meld => meld.Rank == targetRank);
+        var combinedCards = existingMeldIndex >= 0
+            ? melds[existingMeldIndex].Cards.Concat(cardsToAdd).ToArray()
+            : cardsToAdd.ToArray();
+        var updatedMeld = new MeldState(combinedCards);
+
+        if (team.Melds.Count == 0)
+        {
+            var requiredOpeningPoints = GetInitialMeldRequirement(team.StartingScore);
+            var updatedTurnValue = currentTurnMeldPoints + GetCardPointTotal(cardsToAdd);
+
+            if (updatedTurnValue < requiredOpeningPoints)
+            {
+                throw new GameRuleViolationException($"Team {team.TeamIndex + 1} must open with at least {requiredOpeningPoints} points.");
+            }
+        }
+
+        if (existingMeldIndex >= 0)
+        {
+            melds[existingMeldIndex] = updatedMeld;
+        }
+        else
+        {
+            melds.Add(updatedMeld);
+        }
+
+        return new TeamState(team.TeamIndex, team.PlayerIndexes, melds, team.StartingScore);
+    }
+
+    private static CardRank ResolveTargetRank(IReadOnlyList<Card> cards, CardRank? targetRankOverride)
+    {
+        if (targetRankOverride is { } explicitTarget && explicitTarget is CardRank.Two or CardRank.Joker)
+        {
+            throw new GameRuleViolationException("Wild cards cannot define a meld rank.");
+        }
+
+        var naturalRanks = cards
+            .Where(card => !card.IsWild)
+            .Select(card => card.Rank)
+            .Distinct()
+            .ToArray();
+
+        if (naturalRanks.Length > 1)
+        {
+            throw new GameRuleViolationException("All natural cards in a meld must share the same rank.");
+        }
+
+        if (naturalRanks.Length == 1)
+        {
+            if (targetRankOverride is { } explicitTargetRank && explicitTargetRank != naturalRanks[0])
+            {
+                throw new GameRuleViolationException($"The provided cards do not match the requested {explicitTargetRank} meld.");
+            }
+
+            return naturalRanks[0];
+        }
+
+        if (targetRankOverride is { } rank)
+        {
+            return rank;
+        }
+
+        throw new GameRuleViolationException("Meld additions must include a natural card unless an existing meld rank is specified.");
+    }
+
+    private static void EnsureCanGoOut(TeamState team, string playerName)
+    {
+        if (!team.Melds.Any(meld => meld.IsCanasta))
+        {
+            throw new GameRuleViolationException($"{playerName} cannot go out without a canasta.");
+        }
+    }
+
+    private static List<Card> RemoveCardsFromHand(HandState hand, IEnumerable<Card> cardsToRemove)
+    {
+        var updatedHand = hand.ToList();
+
+        foreach (var card in cardsToRemove)
+        {
+            var handIndex = updatedHand.FindIndex(currentCard => currentCard.InstanceId == card.InstanceId);
+
+            if (handIndex < 0)
+            {
+                throw new GameRuleViolationException("A card was selected that is not in the current player's hand.");
+            }
+
+            updatedHand.RemoveAt(handIndex);
+        }
+
+        return updatedHand;
+    }
+
+    private static int GetInitialMeldRequirement(int teamStartingScore) =>
+        teamStartingScore switch
+        {
+            < 0 => 15,
+            < 1500 => 50,
+            < 3000 => 90,
+            _ => 120
+        };
+
+    private static int GetCardPointTotal(IEnumerable<Card> cards) => cards.Sum(card => card.PointValue);
 
     private static void EnsureRoundIsActive(GameRoundState roundState)
     {
@@ -265,7 +683,8 @@ public sealed class GameConfiguration
         int deckCount = 2,
         int cardsPerPlayer = 11,
         int jokersPerDeck = 2,
-        HouseRuleOptions? houseRules = null)
+        HouseRuleOptions? houseRules = null,
+        IEnumerable<int>? teamStartingScores = null)
     {
         ArgumentNullException.ThrowIfNull(playerOrder);
 
@@ -318,6 +737,13 @@ public sealed class GameConfiguration
             throw new ArgumentOutOfRangeException(nameof(jokersPerDeck), "Jokers per deck cannot be negative.");
         }
 
+        var resolvedTeamStartingScores = (teamStartingScores ?? Enumerable.Repeat(0, teamCount)).ToArray();
+
+        if (resolvedTeamStartingScores.Length != teamCount)
+        {
+            throw new ArgumentException("Starting scores must include exactly one entry per team.", nameof(teamStartingScores));
+        }
+
         PlayerOrder = Array.AsReadOnly(orderedPlayers.Select(playerName => playerName!).ToArray());
         TeamCount = teamCount;
         DealerIndex = dealerIndex;
@@ -325,6 +751,7 @@ public sealed class GameConfiguration
         CardsPerPlayer = cardsPerPlayer;
         JokersPerDeck = jokersPerDeck;
         HouseRules = houseRules ?? HouseRuleOptions.CreateDefault();
+        TeamStartingScores = Array.AsReadOnly(resolvedTeamStartingScores);
     }
 
     public IReadOnlyList<string> PlayerOrder { get; }
@@ -340,6 +767,8 @@ public sealed class GameConfiguration
     public int JokersPerDeck { get; }
 
     public HouseRuleOptions HouseRules { get; }
+
+    public IReadOnlyList<int> TeamStartingScores { get; }
 
     public static GameConfiguration CreateDefault() => new(["North", "East", "South", "West"]);
 }
@@ -422,7 +851,9 @@ public sealed class GameRoundState
         int currentPlayerIndex,
         TurnPhase turnPhase,
         int completedTurnCount,
-        RoundSummaryData? summary)
+        RoundSummaryData? summary,
+        int currentTurnMeldPoints,
+        bool currentTurnStartedWithOpenTeam)
     {
         Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         Setup = setup ?? throw new ArgumentNullException(nameof(setup));
@@ -447,14 +878,14 @@ public sealed class GameRoundState
             throw new ArgumentOutOfRangeException(nameof(dealerIndex));
         }
 
-        if (discardPile.Count == 0)
-        {
-            throw new ArgumentException("The discard pile must contain at least one up card.", nameof(discardPile));
-        }
-
         if (completedTurnCount < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(completedTurnCount));
+        }
+
+        if (currentTurnMeldPoints < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(currentTurnMeldPoints));
         }
 
         if (turnPhase == TurnPhase.Completed && summary is null)
@@ -471,6 +902,8 @@ public sealed class GameRoundState
         TurnPhase = turnPhase;
         CompletedTurnCount = completedTurnCount;
         Summary = summary;
+        CurrentTurnMeldPoints = currentTurnMeldPoints;
+        CurrentTurnStartedWithOpenTeam = currentTurnStartedWithOpenTeam;
     }
 
     public GameConfiguration Configuration { get; }
@@ -496,6 +929,10 @@ public sealed class GameRoundState
     public int CompletedTurnCount { get; }
 
     public RoundSummaryData? Summary { get; }
+
+    public int CurrentTurnMeldPoints { get; }
+
+    public bool CurrentTurnStartedWithOpenTeam { get; }
 
     public bool IsCompleted => TurnPhase == TurnPhase.Completed;
 }
@@ -528,7 +965,7 @@ public sealed class PlayerState
 
 public sealed class TeamState
 {
-    public TeamState(int teamIndex, IEnumerable<int> playerIndexes, IEnumerable<MeldState> melds)
+    public TeamState(int teamIndex, IEnumerable<int> playerIndexes, IEnumerable<MeldState> melds, int startingScore = 0)
     {
         ArgumentNullException.ThrowIfNull(playerIndexes);
         ArgumentNullException.ThrowIfNull(melds);
@@ -536,6 +973,7 @@ public sealed class TeamState
         TeamIndex = teamIndex;
         PlayerIndexes = Array.AsReadOnly(playerIndexes.ToArray());
         Melds = Array.AsReadOnly(melds.ToArray());
+        StartingScore = startingScore;
     }
 
     public int TeamIndex { get; }
@@ -543,6 +981,8 @@ public sealed class TeamState
     public IReadOnlyList<int> PlayerIndexes { get; }
 
     public IReadOnlyList<MeldState> Melds { get; }
+
+    public int StartingScore { get; }
 }
 
 public sealed class MeldState
@@ -551,10 +991,71 @@ public sealed class MeldState
     {
         ArgumentNullException.ThrowIfNull(cards);
 
-        Cards = Array.AsReadOnly(cards.ToArray());
+        var meldCards = cards.ToArray();
+
+        if (meldCards.Length < 3)
+        {
+            throw new GameRuleViolationException("A new meld must contain at least three cards.");
+        }
+
+        var naturalCards = meldCards.Where(card => !card.IsWild).ToArray();
+
+        if (naturalCards.Length < 2)
+        {
+            throw new GameRuleViolationException("A meld must contain at least two natural cards.");
+        }
+
+        var naturalRanks = naturalCards.Select(card => card.Rank).Distinct().ToArray();
+
+        if (naturalRanks.Length != 1)
+        {
+            throw new GameRuleViolationException("All natural cards in a meld must share the same rank.");
+        }
+
+        var wildCardCount = meldCards.Length - naturalCards.Length;
+
+        if (wildCardCount > 3)
+        {
+            throw new GameRuleViolationException("A meld cannot contain more than three wild cards.");
+        }
+
+        if (wildCardCount >= naturalCards.Length)
+        {
+            throw new GameRuleViolationException("A meld cannot contain as many or more wild cards than natural cards.");
+        }
+
+        Cards = Array.AsReadOnly(meldCards);
+        Rank = naturalRanks[0];
+        NaturalCardCount = naturalCards.Length;
+        WildCardCount = wildCardCount;
     }
 
     public IReadOnlyList<Card> Cards { get; }
+
+    public CardRank Rank { get; }
+
+    public int NaturalCardCount { get; }
+
+    public int WildCardCount { get; }
+
+    public bool HasWildCards => WildCardCount > 0;
+
+    public bool IsCanasta => Cards.Count >= 7;
+
+    public CanastaKind? CanastaKind
+    {
+        get
+        {
+            if (!IsCanasta)
+            {
+                return null;
+            }
+
+            return HasWildCards ? CanastaNET.Engine.CanastaKind.Mixed : CanastaNET.Engine.CanastaKind.Natural;
+        }
+    }
+
+    public int CardPointTotal => Cards.Sum(card => card.PointValue);
 }
 
 public sealed class DeckState : IReadOnlyList<Card>
@@ -594,7 +1095,13 @@ public sealed class DiscardPileState : IReadOnlyList<Card>
 
     public Card this[int index] => cards[index];
 
-    public Card TopCard => cards[^1];
+    public bool IsEmpty => cards.Count == 0;
+
+    public Card TopCard => IsEmpty
+        ? throw new InvalidOperationException("Cannot access TopCard because the discard pile is empty. Check IsEmpty before accessing TopCard.")
+        : cards[^1];
+
+    public bool IsFrozen => cards.Any(card => card.IsWild);
 
     public IEnumerator<Card> GetEnumerator() => cards.GetEnumerator();
 
@@ -625,7 +1132,12 @@ public sealed class HandState : IReadOnlyList<Card>
 
 public sealed class RoundSummaryData
 {
-    public RoundSummaryData(RoundEndReason endReason, string message, int completedTurnCount)
+    public RoundSummaryData(
+        RoundEndReason endReason,
+        string message,
+        int completedTurnCount,
+        IEnumerable<TeamRoundResultData> teamResults,
+        int? endedByPlayerIndex)
     {
         if (string.IsNullOrWhiteSpace(message))
         {
@@ -637,9 +1149,18 @@ public sealed class RoundSummaryData
             throw new ArgumentOutOfRangeException(nameof(completedTurnCount));
         }
 
+        var resolvedTeamResults = (teamResults ?? throw new ArgumentNullException(nameof(teamResults))).ToArray();
+
+        if (resolvedTeamResults.Length == 0)
+        {
+            throw new ArgumentException("Round summaries must include at least one team result.", nameof(teamResults));
+        }
+
         EndReason = endReason;
         Message = message;
         CompletedTurnCount = completedTurnCount;
+        TeamResults = Array.AsReadOnly(resolvedTeamResults);
+        EndedByPlayerIndex = endedByPlayerIndex;
     }
 
     public RoundEndReason EndReason { get; }
@@ -647,6 +1168,65 @@ public sealed class RoundSummaryData
     public string Message { get; }
 
     public int CompletedTurnCount { get; }
+
+    public IReadOnlyList<TeamRoundResultData> TeamResults { get; }
+
+    public int? EndedByPlayerIndex { get; }
+}
+
+public sealed class TeamRoundResultData
+{
+    public TeamRoundResultData(
+        int teamIndex,
+        int startingScore,
+        int initialMeldRequirement,
+        int meldPoints,
+        int naturalCanastaCount,
+        int mixedCanastaCount,
+        int canastaBonus,
+        int goingOutBonus,
+        int concealedHandBonus,
+        int handPenalty,
+        int roundScore,
+        bool wentOut)
+    {
+        TeamIndex = teamIndex;
+        StartingScore = startingScore;
+        InitialMeldRequirement = initialMeldRequirement;
+        MeldPoints = meldPoints;
+        NaturalCanastaCount = naturalCanastaCount;
+        MixedCanastaCount = mixedCanastaCount;
+        CanastaBonus = canastaBonus;
+        GoingOutBonus = goingOutBonus;
+        ConcealedHandBonus = concealedHandBonus;
+        HandPenalty = handPenalty;
+        RoundScore = roundScore;
+        WentOut = wentOut;
+    }
+
+    public int TeamIndex { get; }
+
+    public int StartingScore { get; }
+
+    public int InitialMeldRequirement { get; }
+
+    public int MeldPoints { get; }
+
+    public int NaturalCanastaCount { get; }
+
+    public int MixedCanastaCount { get; }
+
+    public int CanastaBonus { get; }
+
+    public int GoingOutBonus { get; }
+
+    public int ConcealedHandBonus { get; }
+
+    public int HandPenalty { get; }
+
+    public int RoundScore { get; }
+
+    public bool WentOut { get; }
 }
 
 public sealed class GameRuleViolationException : InvalidOperationException
@@ -714,6 +1294,16 @@ public readonly record struct Card
 
     public bool IsJoker => Rank == CardRank.Joker;
 
+    public bool IsWild => IsJoker || Rank == CardRank.Two;
+
+    public int PointValue => Rank switch
+    {
+        CardRank.Joker => 50,
+        CardRank.Two or CardRank.Ace => 20,
+        CardRank.Eight or CardRank.Nine or CardRank.Ten or CardRank.Jack or CardRank.Queen or CardRank.King => 10,
+        _ => 5
+    };
+
     public static Card CreateJoker(int instanceId, int deckNumber) => new(instanceId, CardRank.Joker, null, deckNumber);
 
     public override string ToString() => IsJoker ? $"Joker (Deck {DeckNumber})" : $"{Rank} of {Suit} (Deck {DeckNumber})";
@@ -754,11 +1344,18 @@ public enum TurnPhase
 
 public enum RoundEndReason
 {
-    StockExhausted
+    StockExhausted,
+    PlayerWentOut
 }
 
 public enum RoundStartPlayerRule
 {
     NextPlayerAfterDealer,
     DealerStartsRound
+}
+
+public enum CanastaKind
+{
+    Natural,
+    Mixed
 }
