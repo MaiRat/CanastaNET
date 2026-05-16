@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\engine\CanastaNET.Engine\CanastaNET.Engine.csproj" />
     <ProjectReference Include="..\..\cli\CanastaNET.Cli\CanastaNET.Cli.csproj" />
+    <ProjectReference Include="..\..\desktop\CanastaNET.Desktop.Core\CanastaNET.Desktop.Core.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,11 +1,12 @@
 # CanastaNET
 
-CanastaNET is a .NET/C# Canasta project with a Canasta game engine. The repository now provides explicit setup and round-state modeling, meld validation, frozen-discard handling, round-end scoring, multi-round match lifecycle APIs, serialization-friendly snapshots, a small command-line entry point, and matching automated tests so future milestones can build on a stable core.
+CanastaNET is a .NET/C# Canasta project with a Canasta game engine. The repository now provides explicit setup and round-state modeling, meld validation, frozen-discard handling, round-end scoring, multi-round match lifecycle APIs, serialization-friendly snapshots, a small command-line entry point, a WPF desktop shell, and matching automated tests so future milestones can build on a stable core.
 
 ## Project structure
 
 - `engine/` - core game engine project and round-state APIs
 - `cli/` - interactive command-line app for match setup, gameplay, and state inspection
+- `desktop/` - WPF desktop shell and platform-neutral view-model layer built on engine snapshots
 - `docs/` - project notes and future documentation space
 - `tests/` - automated tests for engine behavior
 
@@ -66,3 +67,33 @@ CanastaNET is a .NET/C# Canasta project with a Canasta game engine. The reposito
    ```bash
    dotnet test tests/CanastaNET.Engine.Tests
    ```
+
+## Desktop UI foundation
+
+- Build the desktop shell:
+
+  ```bash
+  dotnet build desktop/CanastaNET.Desktop/CanastaNET.Desktop.csproj
+  ```
+
+- On Windows, run the WPF app:
+
+  ```bash
+  dotnet run --project desktop/CanastaNET.Desktop/CanastaNET.Desktop.csproj
+  ```
+
+- Desktop smoke coverage lives in `DesktopWorkspaceViewModelTests` and can be run with:
+
+  ```bash
+  dotnet test tests/CanastaNET.Engine.Tests --filter DesktopWorkspaceViewModelTests
+  ```
+
+### Manual verification checklist
+
+On a Windows machine, launch the desktop app and verify:
+
+- the setup panel can start a seeded match with custom players and scoring options
+- the table overview tab reflects the current player, turn phase, stock count, discard top card, and legal commands
+- the player hands tab allows selecting the current player's cards for draw/meld/discard workflows
+- the melds, discard pile, and score summary tabs update after each action
+- invalid actions show validation feedback from the engine, and `Next round` becomes available after a completed round

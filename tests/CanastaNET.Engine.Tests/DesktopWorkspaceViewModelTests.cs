@@ -1,0 +1,70 @@
+using CanastaNET.Desktop.Core;
+
+namespace CanastaNET.Engine.Tests;
+
+public class DesktopWorkspaceViewModelTests
+{
+    [Fact]
+    public void Workspace_MapsDefaultMatchIntoDesktopScreens()
+    {
+        var workspace = new CanastaWorkspaceViewModel();
+
+        Assert.Equal(1, workspace.TableOverview.RoundNumber);
+        Assert.Equal("AwaitingDraw", workspace.TableOverview.TurnPhase);
+        Assert.Equal(workspace.TableOverview.CurrentPlayerName, workspace.PlayerHands.Single(hand => hand.IsCurrentPlayer).Name);
+        Assert.NotEmpty(workspace.DiscardPile.Cards);
+        Assert.Equal(workspace.ScoreSummary.TeamScores.Count, workspace.TeamMelds.Count);
+        Assert.Contains(workspace.LegalCommands, command => command.CommandText == "draw stock");
+    }
+
+    [Fact]
+    public void DiscardCommand_ShowsValidationFeedbackWhenRoundStillAwaitsDraw()
+    {
+        var workspace = new CanastaWorkspaceViewModel();
+        var currentHand = workspace.PlayerHands.Single(hand => hand.IsCurrentPlayer);
+        currentHand.Cards[0].IsSelected = true;
+
+        Assert.True(workspace.DiscardCommand.CanExecute(null));
+
+        workspace.DiscardCommand.Execute(null);
+
+        Assert.Contains("must draw before discarding", workspace.FeedbackMessage!, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("draw stock", workspace.FeedbackMessage!, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(workspace.LegalCommands, command => command.CommandText == "draw stock");
+    }
+
+    [Fact]
+    public void Commands_CanDriveBasicTurnFlowFromTheDesktopWorkspace()
+    {
+        var workspace = new CanastaWorkspaceViewModel();
+        workspace.Setup.SeedText = "7";
+        workspace.StartMatchCommand.Execute(null);
+
+        var activePlayerBeforeTurn = workspace.TableOverview.CurrentPlayerName;
+        var handSizeBeforeDraw = workspace.PlayerHands.Single(hand => hand.IsCurrentPlayer).Cards.Count;
+
+        workspace.DrawStockCommand.Execute(null);
+
+        Assert.Equal("AwaitingDiscard", workspace.TableOverview.TurnPhase);
+        Assert.Equal(handSizeBeforeDraw + 1, workspace.PlayerHands.Single(hand => hand.IsCurrentPlayer).Cards.Count);
+
+        var currentHand = workspace.PlayerHands.Single(hand => hand.IsCurrentPlayer);
+        currentHand.Cards[0].IsSelected = true;
+        workspace.EndTurnCommand.Execute(null);
+
+        Assert.Equal("AwaitingDraw", workspace.TableOverview.TurnPhase);
+        Assert.NotEqual(activePlayerBeforeTurn, workspace.TableOverview.CurrentPlayerName);
+        Assert.Contains("Ended the turn", workspace.FeedbackMessage!, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void StartMatch_ShowsValidationFeedbackForInvalidSeedInput()
+    {
+        var workspace = new CanastaWorkspaceViewModel();
+        workspace.Setup.SeedText = "not-a-number";
+
+        workspace.StartMatchCommand.Execute(null);
+
+        Assert.Contains("Seed values must be integers", workspace.FeedbackMessage!, StringComparison.OrdinalIgnoreCase);
+    }
+}

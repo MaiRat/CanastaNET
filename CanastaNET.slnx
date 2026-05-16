@@ -2,6 +2,10 @@
   <Folder Name="/cli/">
     <Project Path="cli/CanastaNET.Cli/CanastaNET.Cli.csproj" />
   </Folder>
+  <Folder Name="/desktop/">
+    <Project Path="desktop/CanastaNET.Desktop.Core/CanastaNET.Desktop.Core.csproj" />
+    <Project Path="desktop/CanastaNET.Desktop/CanastaNET.Desktop.csproj" />
+  </Folder>
   <Folder Name="/engine/">
     <Project Path="engine/CanastaNET.Engine/CanastaNET.Engine.csproj" />
   </Folder>

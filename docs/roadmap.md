@@ -126,6 +126,13 @@ This roadmap breaks the project into incremental milestones so the codebase can 
 
 **Goal:** establish a desktop UI shell that can display and drive engine state safely.
 
+### Repository coverage
+
+- `desktop/CanastaNET.Desktop` adds a WPF navigation shell, shared styling resources, and tabbed screens for setup, table overview, hands, melds, discard pile, and score summary.
+- `desktop/CanastaNET.Desktop.Core` maps `GameMatchSnapshot` and `RoundCommandCatalog` data into UI-facing view models instead of re-implementing rules in the desktop client.
+- Desktop commands route draw, meld, discard, end-turn, and next-round actions through the engine so validation feedback stays consistent with the CLI.
+- `DesktopWorkspaceViewModelTests` provide snapshot-mapping and command-workflow smoke coverage, while the README documents Windows manual verification steps.
+
 ### Tasks
 
 - Create the WPF application structure, navigation shell, and shared styling resources.
@@ -138,6 +145,12 @@ This roadmap breaks the project into incremental milestones so the codebase can 
 
 - Requires Milestone 3 stable engine-facing APIs.
 - Benefits from Milestone 4 CLI learnings around user flows and validation messaging.
+
+### Validation criteria
+
+- Run `dotnet build CanastaNET.slnx`.
+- Run `dotnet test tests/CanastaNET.Engine.Tests --filter DesktopWorkspaceViewModelTests`.
+- Follow the Windows manual verification checklist in `README.md` for live WPF interaction.
 
 ## Milestone 7 - WPF polish and user experience (P2)
 
