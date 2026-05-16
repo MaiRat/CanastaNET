@@ -440,7 +440,7 @@ internal sealed class CliSession
         var discardPile = matchState.CurrentRound.DiscardPile;
         var lines = new List<string>
         {
-            $"Discard pile ({discardPile.Count} cards):",
+            $"Discard pile ({discardPile.Count} {(discardPile.Count == 1 ? "card" : "cards")}):",
             discardPile.Count == 0
                 ? "(empty)"
                 : string.Join(Environment.NewLine, discardPile.Select(card => $"- {FormatCard(card)}"))

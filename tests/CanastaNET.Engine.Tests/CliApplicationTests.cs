@@ -28,7 +28,7 @@ public class CliApplicationTests
         Assert.Contains("Hand for East", output);
         Assert.Contains("Teams:", output);
         Assert.Contains("Melds:", output);
-        Assert.Contains("Discard pile (1 cards):", output);
+        Assert.Contains("Discard pile (1 card):", output);
         Assert.Contains("Scores:", output);
         Assert.Contains("Legal commands for AwaitingDraw:", output);
     }
