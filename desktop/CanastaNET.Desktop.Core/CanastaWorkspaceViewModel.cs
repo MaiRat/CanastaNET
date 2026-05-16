@@ -558,13 +558,15 @@ public sealed class MeldViewModel
     {
         var naturalCards = snapshot.Cards.Count(card => !card.IsWild);
         var wildCards = snapshot.Cards.Count - naturalCards;
-        var rank = snapshot.Cards.FirstOrDefault(card => !card.IsWild).Rank;
+        var rankLabel = snapshot.Cards.FirstOrDefault(card => !card.IsWild) is { InstanceId: > 0 } naturalCard
+            ? naturalCard.Rank.ToString()
+            : "Wild cards";
         var canastaLabel = snapshot.Cards.Count >= 7
             ? wildCards == 0 ? "Natural canasta" : "Mixed canasta"
             : "Meld";
 
         return new MeldViewModel(
-            $"{rank} - {canastaLabel} ({snapshot.Cards.Count} cards, {naturalCards} natural, {wildCards} wild)",
+            $"{rankLabel} - {canastaLabel} ({snapshot.Cards.Count} cards, {naturalCards} natural, {wildCards} wild)",
             snapshot.Cards.Select(CardFormatter.Format).ToArray());
     }
 }
