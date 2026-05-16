@@ -203,7 +203,8 @@ public sealed class GameEngine
         }
 
         var updatedHand = RemoveCardsFromHand(currentPlayer.Hand, selectedCards);
-        updatedHand.AddRange(roundState.DiscardPile.Take(roundState.DiscardPile.Count - 1));
+        var retainedDiscardCards = roundState.DiscardPile.SkipLast(1);
+        updatedHand.AddRange(retainedDiscardCards);
 
         var players = roundState.Players.ToArray();
         players[roundState.CurrentPlayerIndex] = new PlayerState(
@@ -1041,7 +1042,18 @@ public sealed class MeldState
 
     public bool IsCanasta => Cards.Count >= 7;
 
-    public CanastaKind? CanastaKind => !IsCanasta ? null : HasWildCards ? CanastaNET.Engine.CanastaKind.Mixed : CanastaNET.Engine.CanastaKind.Natural;
+    public CanastaKind? CanastaKind
+    {
+        get
+        {
+            if (!IsCanasta)
+            {
+                return null;
+            }
+
+            return HasWildCards ? CanastaNET.Engine.CanastaKind.Mixed : CanastaNET.Engine.CanastaKind.Natural;
+        }
+    }
 
     public int CardPointTotal => Cards.Sum(card => card.PointValue);
 }
