@@ -51,6 +51,13 @@ This roadmap breaks the project into incremental milestones so the codebase can 
 
 **Goal:** support multi-round play and provide stable APIs for front ends.
 
+### Repository coverage
+
+- `GameMatchState` tracks cumulative team totals, dealer rotation, round history, and match completion.
+- `GameCommand`, `GameCommandResult`, and `RoundCommandCatalog` provide command/result APIs with legal action discovery and error reporting.
+- `GameRoundSnapshot` and `GameMatchSnapshot` provide serialization-friendly save/load DTOs for diagnostics and future clients.
+- `GameTestFactory` adds reusable engine fixtures for scenario-focused tests.
+
 ### Tasks
 
 - Track match totals, dealer rotation, round history, and victory conditions.

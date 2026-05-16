@@ -10,7 +10,8 @@ public sealed class GameEngine
         "Card, deck, hand, team, and meld modeling",
         "Controlled setup and round state snapshots",
         "Stock/discard draw flow with frozen discard handling",
-        "Meld validation, going out rules, and round scoring"
+        "Meld validation, going out rules, and round scoring",
+        "Match lifecycle, command/result APIs, and save/load snapshots"
     ];
 
     public string GetStartupMessage() => "CanastaNET core rules ready.";
@@ -92,6 +93,223 @@ public sealed class GameEngine
             null,
             0,
             false);
+    }
+
+    public GameMatchState StartMatch(GameConfiguration? configuration = null, int? seed = null, int winningScore = 5000)
+    {
+        if (winningScore < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(winningScore), "Winning score must be positive.");
+        }
+
+        var matchConfiguration = configuration ?? GameConfiguration.CreateDefault();
+        var openingRound = StartRound(matchConfiguration, seed);
+
+        return new GameMatchState(
+            matchConfiguration,
+            winningScore,
+            matchConfiguration.TeamStartingScores,
+            [],
+            openingRound);
+    }
+
+    public GameMatchState StartNextRound(GameMatchState matchState, int? seed = null)
+    {
+        ArgumentNullException.ThrowIfNull(matchState);
+
+        if (matchState.IsCompleted)
+        {
+            throw new GameRuleViolationException("The match is already complete.");
+        }
+
+        if (!matchState.CurrentRound.IsCompleted)
+        {
+            throw new GameRuleViolationException("The current round must be complete before starting the next round.");
+        }
+
+        var nextRoundConfiguration = new GameConfiguration(
+            matchState.Configuration.PlayerOrder,
+            matchState.Configuration.TeamCount,
+            GetNextPlayerIndex(matchState.CurrentRound.DealerIndex, matchState.Configuration.PlayerOrder.Count),
+            matchState.Configuration.DeckCount,
+            matchState.Configuration.CardsPerPlayer,
+            matchState.Configuration.JokersPerDeck,
+            matchState.Configuration.HouseRules,
+            matchState.TeamScores);
+
+        return new GameMatchState(
+            matchState.Configuration,
+            matchState.WinningScore,
+            matchState.TeamScores,
+            matchState.RoundHistory,
+            StartRound(nextRoundConfiguration, seed),
+            matchState.WinningTeamIndexes);
+    }
+
+    public GameCommandResult Apply(GameRoundState roundState, GameCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(roundState);
+        ArgumentNullException.ThrowIfNull(command);
+
+        try
+        {
+            var updatedRound = command.CommandType switch
+            {
+                GameCommandType.DrawFromStock => ApplyDrawFromStock(roundState, command),
+                GameCommandType.DrawFromDiscardPile => ApplyDrawFromDiscardPile(roundState, command),
+                GameCommandType.Meld => ApplyMeld(roundState, command),
+                GameCommandType.Discard => ApplyDiscard(roundState, command),
+                _ => throw new ArgumentOutOfRangeException(nameof(command), command.CommandType, "Unsupported command type.")
+            };
+
+            return new GameCommandResult(true, updatedRound, GetLegalCommands(updatedRound));
+        }
+        catch (Exception exception) when (exception is ArgumentException or GameRuleViolationException or InvalidOperationException)
+        {
+            return new GameCommandResult(false, roundState, GetLegalCommands(roundState), exception.Message);
+        }
+    }
+
+    public MatchCommandResult Apply(GameMatchState matchState, GameCommand command)
+    {
+        ArgumentNullException.ThrowIfNull(matchState);
+        ArgumentNullException.ThrowIfNull(command);
+
+        var commandResult = Apply(matchState.CurrentRound, command);
+        var updatedMatch = commandResult.Succeeded
+            ? UpdateMatchWithRound(matchState, commandResult.RoundState)
+            : matchState;
+
+        return new MatchCommandResult(
+            commandResult.Succeeded,
+            updatedMatch,
+            GetLegalCommands(updatedMatch.CurrentRound),
+            commandResult.ErrorMessage);
+    }
+
+    public RoundCommandCatalog GetLegalCommands(GameRoundState roundState)
+    {
+        ArgumentNullException.ThrowIfNull(roundState);
+
+        if (roundState.IsCompleted)
+        {
+            return new RoundCommandCatalog(roundState.TurnPhase, []);
+        }
+
+        List<LegalGameCommand> commands = [];
+
+        switch (roundState.TurnPhase)
+        {
+            case TurnPhase.AwaitingDraw:
+                commands.Add(new LegalGameCommand(
+                    GameCommand.DrawFromStock(),
+                    "Draw the top card from stock."));
+
+                if (TryCreateDiscardPickupCommand(roundState, out var discardPickupCommand, out var discardPickupDescription))
+                {
+                    commands.Add(new LegalGameCommand(discardPickupCommand, discardPickupDescription));
+                }
+
+                break;
+
+            case TurnPhase.AwaitingDiscard:
+                commands.Add(new LegalGameCommand(
+                    GameCommand.Meld(roundState.CurrentPlayer.Hand.Select(card => card.InstanceId)),
+                    "Meld or extend a meld using cards from hand. Provide the subset to meld and set a target rank when adding only wild cards."));
+
+                commands.AddRange(roundState.CurrentPlayer.Hand.Select(card => new LegalGameCommand(
+                    GameCommand.Discard(card.InstanceId),
+                    $"Discard {card}.")));
+                break;
+        }
+
+        return new RoundCommandCatalog(roundState.TurnPhase, commands);
+    }
+
+    public GameRoundSnapshot CreateSnapshot(GameRoundState roundState)
+    {
+        ArgumentNullException.ThrowIfNull(roundState);
+
+        return new GameRoundSnapshot(
+            roundState.Configuration,
+            new RoundSetupSnapshot(
+                roundState.Setup.ShuffleSeed,
+                roundState.Setup.FirstPlayerIndex,
+                roundState.Setup.DealerIndex,
+                roundState.Setup.CardsPerPlayer,
+                roundState.Setup.OpeningDiscardPile,
+                roundState.Setup.InitialStockCount),
+            roundState.Players.Select(player => new PlayerSnapshot(player.PlayerIndex, player.Name, player.TeamIndex, player.Hand)).ToArray(),
+            roundState.Teams.Select(team => new TeamSnapshot(
+                team.TeamIndex,
+                team.PlayerIndexes,
+                team.Melds.Select(meld => new MeldSnapshot(meld.Cards)).ToArray(),
+                team.StartingScore)).ToArray(),
+            roundState.StockPile,
+            roundState.DiscardPile,
+            roundState.DealerIndex,
+            roundState.CurrentPlayerIndex,
+            roundState.TurnPhase,
+            roundState.CompletedTurnCount,
+            roundState.Summary,
+            roundState.CurrentTurnMeldPoints,
+            roundState.CurrentTurnStartedWithOpenTeam);
+    }
+
+    public GameRoundState LoadSnapshot(GameRoundSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+
+        return new GameRoundState(
+            snapshot.Configuration,
+            new RoundSetupData(
+                snapshot.Setup.ShuffleSeed,
+                snapshot.Setup.FirstPlayerIndex,
+                snapshot.Setup.DealerIndex,
+                snapshot.Setup.CardsPerPlayer,
+                snapshot.Setup.OpeningDiscardPile,
+                snapshot.Setup.InitialStockCount),
+            snapshot.Players.Select(player => new PlayerState(player.PlayerIndex, player.Name, player.TeamIndex, player.Hand)),
+            snapshot.Teams.Select(team => new TeamState(
+                team.TeamIndex,
+                team.PlayerIndexes,
+                team.Melds.Select(meld => new MeldState(meld.Cards)),
+                team.StartingScore)),
+            new DeckState(snapshot.StockPile),
+            new DiscardPileState(snapshot.DiscardPile),
+            snapshot.DealerIndex,
+            snapshot.CurrentPlayerIndex,
+            snapshot.TurnPhase,
+            snapshot.CompletedTurnCount,
+            snapshot.Summary,
+            snapshot.CurrentTurnMeldPoints,
+            snapshot.CurrentTurnStartedWithOpenTeam);
+    }
+
+    public GameMatchSnapshot CreateSnapshot(GameMatchState matchState)
+    {
+        ArgumentNullException.ThrowIfNull(matchState);
+
+        return new GameMatchSnapshot(
+            matchState.Configuration,
+            matchState.WinningScore,
+            matchState.TeamScores,
+            matchState.RoundHistory,
+            CreateSnapshot(matchState.CurrentRound),
+            matchState.WinningTeamIndexes);
+    }
+
+    public GameMatchState LoadSnapshot(GameMatchSnapshot snapshot)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+
+        return new GameMatchState(
+            snapshot.Configuration,
+            snapshot.WinningScore,
+            snapshot.TeamScores,
+            snapshot.RoundHistory,
+            LoadSnapshot(snapshot.CurrentRound),
+            snapshot.WinningTeamIndexes);
     }
 
     public GameRoundState DrawFromStock(GameRoundState roundState)
@@ -435,6 +653,201 @@ public sealed class GameEngine
             summary,
             currentTurnMeldPoints,
             currentTurnStartedWithOpenTeam);
+    }
+
+    private GameRoundState ApplyDrawFromStock(GameRoundState roundState, GameCommand command)
+    {
+        EnsureCommandDoesNotSpecifyCards(command);
+        return DrawFromStock(roundState);
+    }
+
+    private GameRoundState ApplyDrawFromDiscardPile(GameRoundState roundState, GameCommand command)
+    {
+        if (command.TargetRank is not null)
+        {
+            throw new GameRuleViolationException("Discard pile pickup commands cannot specify a target rank.");
+        }
+
+        return DrawFromDiscardPile(
+            roundState,
+            ResolveCards(roundState.CurrentPlayer.Hand, command.CardInstanceIds));
+    }
+
+    private GameRoundState ApplyMeld(GameRoundState roundState, GameCommand command)
+    {
+        var cards = ResolveCards(roundState.CurrentPlayer.Hand, command.CardInstanceIds);
+        return command.TargetRank is { } targetRank
+            ? Meld(roundState, targetRank, cards)
+            : Meld(roundState, cards);
+    }
+
+    private GameRoundState ApplyDiscard(GameRoundState roundState, GameCommand command)
+    {
+        if (command.TargetRank is not null)
+        {
+            throw new GameRuleViolationException("Discard commands cannot specify a target rank.");
+        }
+
+        if (command.CardInstanceIds.Count != 1)
+        {
+            throw new GameRuleViolationException("Discard commands must specify exactly one card.");
+        }
+
+        return Discard(
+            roundState,
+            ResolveCard(roundState.CurrentPlayer.Hand, command.CardInstanceIds[0]));
+    }
+
+    private static void EnsureCommandDoesNotSpecifyCards(GameCommand command)
+    {
+        if (command.TargetRank is not null)
+        {
+            throw new GameRuleViolationException($"{command.CommandType} commands cannot specify a target rank.");
+        }
+
+        if (command.CardInstanceIds.Count > 0)
+        {
+            throw new GameRuleViolationException($"{command.CommandType} commands cannot specify cards.");
+        }
+    }
+
+    private static Card ResolveCard(HandState hand, int instanceId)
+    {
+        foreach (var card in hand)
+        {
+            if (card.InstanceId == instanceId)
+            {
+                return card;
+            }
+        }
+
+        throw new GameRuleViolationException($"Card {instanceId} is not in the current player's hand.");
+    }
+
+    private static IReadOnlyList<Card> ResolveCards(HandState hand, IReadOnlyList<int> instanceIds)
+    {
+        if (instanceIds.Count == 0)
+        {
+            return [];
+        }
+
+        if (instanceIds.Distinct().Count() != instanceIds.Count)
+        {
+            throw new GameRuleViolationException("Command card selections cannot contain duplicates.");
+        }
+
+        return instanceIds.Select(instanceId => ResolveCard(hand, instanceId)).ToArray();
+    }
+
+    private static bool TryCreateDiscardPickupCommand(
+        GameRoundState roundState,
+        out GameCommand command,
+        out string description)
+    {
+        command = GameCommand.DrawFromDiscardPile([]);
+        description = string.Empty;
+
+        if (roundState.TurnPhase != TurnPhase.AwaitingDraw || roundState.DiscardPile.IsEmpty)
+        {
+            return false;
+        }
+
+        var topCard = roundState.DiscardPile.TopCard;
+
+        if (topCard.IsWild)
+        {
+            return false;
+        }
+
+        var currentPlayer = roundState.CurrentPlayer;
+        var currentTeam = roundState.Teams[currentPlayer.TeamIndex];
+        var existingMeld = currentTeam.Melds.FirstOrDefault(meld => meld.Rank == topCard.Rank);
+
+        if (existingMeld is not null)
+        {
+            command = GameCommand.DrawFromDiscardPile([]);
+            description = $"Take the discard pile onto the existing {topCard.Rank} meld.";
+            return true;
+        }
+
+        var matchingCards = currentPlayer.Hand
+            .Where(card => !card.IsWild && card.Rank == topCard.Rank)
+            .Take(2)
+            .Select(card => card.InstanceId)
+            .ToArray();
+
+        if (matchingCards.Length < 2)
+        {
+            return false;
+        }
+
+        command = GameCommand.DrawFromDiscardPile(matchingCards);
+        description = roundState.DiscardPile.IsFrozen
+            ? $"Take the frozen discard pile with two natural {topCard.Rank} cards from hand."
+            : $"Take the discard pile with two natural {topCard.Rank} cards from hand.";
+        return true;
+    }
+
+    private static GameMatchState UpdateMatchWithRound(GameMatchState matchState, GameRoundState roundState)
+    {
+        if (!matchState.CurrentRound.IsCompleted && roundState.IsCompleted)
+        {
+            return FinalizeCompletedRound(matchState, roundState);
+        }
+
+        return new GameMatchState(
+            matchState.Configuration,
+            matchState.WinningScore,
+            matchState.TeamScores,
+            matchState.RoundHistory,
+            roundState,
+            matchState.WinningTeamIndexes);
+    }
+
+    private static GameMatchState FinalizeCompletedRound(GameMatchState matchState, GameRoundState completedRound)
+    {
+        var updatedScores = matchState.TeamScores.ToArray();
+
+        foreach (var teamResult in completedRound.Summary!.TeamResults)
+        {
+            updatedScores[teamResult.TeamIndex] += teamResult.RoundScore;
+        }
+
+        var history = matchState.RoundHistory
+            .Concat(
+            [
+                new MatchRoundRecord(
+                    matchState.RoundHistory.Count + 1,
+                    completedRound.DealerIndex,
+                    completedRound.Setup.ShuffleSeed,
+                    completedRound.Summary,
+                    updatedScores)
+            ])
+            .ToArray();
+
+        return new GameMatchState(
+            matchState.Configuration,
+            matchState.WinningScore,
+            updatedScores,
+            history,
+            completedRound,
+            ResolveWinningTeamIndexes(updatedScores, matchState.WinningScore));
+    }
+
+    private static IReadOnlyList<int> ResolveWinningTeamIndexes(IReadOnlyList<int> teamScores, int winningScore)
+    {
+        var highestScore = teamScores.Max();
+
+        if (highestScore < winningScore)
+        {
+            return [];
+        }
+
+        return teamScores
+            .Select((score, teamIndex) => (score, teamIndex))
+            .Where(result => result.score == highestScore)
+            .Select(result => result.teamIndex)
+            .ToArray();
     }
 
     private static RoundSummaryData CreateRoundSummary(
@@ -937,6 +1350,379 @@ public sealed class GameRoundState
     public bool IsCompleted => TurnPhase == TurnPhase.Completed;
 }
 
+public sealed class GameMatchState
+{
+    public GameMatchState(
+        GameConfiguration configuration,
+        int winningScore,
+        IEnumerable<int> teamScores,
+        IEnumerable<MatchRoundRecord> roundHistory,
+        GameRoundState currentRound,
+        IEnumerable<int>? winningTeamIndexes = null)
+    {
+        Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+
+        if (winningScore < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(winningScore), "Winning score must be positive.");
+        }
+
+        var resolvedTeamScores = (teamScores ?? throw new ArgumentNullException(nameof(teamScores))).ToArray();
+
+        if (resolvedTeamScores.Length != configuration.TeamCount)
+        {
+            throw new ArgumentException("Match scores must include exactly one score per team.", nameof(teamScores));
+        }
+
+        var resolvedRoundHistory = (roundHistory ?? throw new ArgumentNullException(nameof(roundHistory))).ToArray();
+        CurrentRound = currentRound ?? throw new ArgumentNullException(nameof(currentRound));
+        var resolvedWinningTeamIndexes = (winningTeamIndexes ?? []).ToArray();
+
+        WinningScore = winningScore;
+        TeamScores = Array.AsReadOnly(resolvedTeamScores);
+        RoundHistory = Array.AsReadOnly(resolvedRoundHistory);
+        WinningTeamIndexes = Array.AsReadOnly(resolvedWinningTeamIndexes);
+    }
+
+    public GameConfiguration Configuration { get; }
+
+    public int WinningScore { get; }
+
+    public IReadOnlyList<int> TeamScores { get; }
+
+    public IReadOnlyList<MatchRoundRecord> RoundHistory { get; }
+
+    public GameRoundState CurrentRound { get; }
+
+    public IReadOnlyList<int> WinningTeamIndexes { get; }
+
+    public bool IsCompleted => WinningTeamIndexes.Count > 0;
+
+    public bool CanStartNextRound => CurrentRound.IsCompleted && !IsCompleted;
+}
+
+public sealed class MatchRoundRecord
+{
+    public MatchRoundRecord(
+        int roundNumber,
+        int dealerIndex,
+        int? shuffleSeed,
+        RoundSummaryData summary,
+        IEnumerable<int> teamScoresAfterRound)
+    {
+        if (roundNumber < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(roundNumber));
+        }
+
+        if (dealerIndex < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(dealerIndex));
+        }
+
+        RoundNumber = roundNumber;
+        DealerIndex = dealerIndex;
+        ShuffleSeed = shuffleSeed;
+        Summary = summary ?? throw new ArgumentNullException(nameof(summary));
+        TeamScoresAfterRound = Array.AsReadOnly((teamScoresAfterRound ?? throw new ArgumentNullException(nameof(teamScoresAfterRound))).ToArray());
+    }
+
+    public int RoundNumber { get; }
+
+    public int DealerIndex { get; }
+
+    public int? ShuffleSeed { get; }
+
+    public RoundSummaryData Summary { get; }
+
+    public IReadOnlyList<int> TeamScoresAfterRound { get; }
+}
+
+public sealed class GameCommand
+{
+    public GameCommand(GameCommandType commandType, IEnumerable<int>? cardInstanceIds = null, CardRank? targetRank = null)
+    {
+        if (commandType != GameCommandType.Meld && targetRank is not null)
+        {
+            throw new ArgumentException("Only meld commands can specify a target rank.", nameof(targetRank));
+        }
+
+        CommandType = commandType;
+        CardInstanceIds = Array.AsReadOnly((cardInstanceIds ?? []).ToArray());
+        TargetRank = targetRank;
+    }
+
+    public GameCommandType CommandType { get; }
+
+    public IReadOnlyList<int> CardInstanceIds { get; }
+
+    public CardRank? TargetRank { get; }
+
+    public static GameCommand DrawFromStock() => new(GameCommandType.DrawFromStock);
+
+    public static GameCommand DrawFromDiscardPile(IEnumerable<int>? cardInstanceIds = null) =>
+        new(GameCommandType.DrawFromDiscardPile, cardInstanceIds);
+
+    public static GameCommand Meld(IEnumerable<int> cardInstanceIds, CardRank? targetRank = null) =>
+        new(GameCommandType.Meld, cardInstanceIds, targetRank);
+
+    public static GameCommand Discard(int cardInstanceId) =>
+        new(GameCommandType.Discard, [cardInstanceId]);
+}
+
+public sealed class LegalGameCommand
+{
+    public LegalGameCommand(GameCommand command, string description)
+    {
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            throw new ArgumentException("Legal command descriptions must be non-empty.", nameof(description));
+        }
+
+        Command = command ?? throw new ArgumentNullException(nameof(command));
+        Description = description;
+    }
+
+    public GameCommand Command { get; }
+
+    public string Description { get; }
+}
+
+public sealed class RoundCommandCatalog
+{
+    public RoundCommandCatalog(TurnPhase turnPhase, IEnumerable<LegalGameCommand> commands)
+    {
+        TurnPhase = turnPhase;
+        Commands = Array.AsReadOnly((commands ?? throw new ArgumentNullException(nameof(commands))).ToArray());
+    }
+
+    public TurnPhase TurnPhase { get; }
+
+    public IReadOnlyList<LegalGameCommand> Commands { get; }
+}
+
+public sealed class GameCommandResult
+{
+    public GameCommandResult(bool succeeded, GameRoundState roundState, RoundCommandCatalog legalCommands, string? errorMessage = null)
+    {
+        if (!succeeded && string.IsNullOrWhiteSpace(errorMessage))
+        {
+            throw new ArgumentException("Failed command results must include an error message.", nameof(errorMessage));
+        }
+
+        Succeeded = succeeded;
+        RoundState = roundState ?? throw new ArgumentNullException(nameof(roundState));
+        LegalCommands = legalCommands ?? throw new ArgumentNullException(nameof(legalCommands));
+        ErrorMessage = errorMessage;
+    }
+
+    public bool Succeeded { get; }
+
+    public GameRoundState RoundState { get; }
+
+    public RoundCommandCatalog LegalCommands { get; }
+
+    public string? ErrorMessage { get; }
+}
+
+public sealed class MatchCommandResult
+{
+    public MatchCommandResult(bool succeeded, GameMatchState matchState, RoundCommandCatalog legalCommands, string? errorMessage = null)
+    {
+        if (!succeeded && string.IsNullOrWhiteSpace(errorMessage))
+        {
+            throw new ArgumentException("Failed command results must include an error message.", nameof(errorMessage));
+        }
+
+        Succeeded = succeeded;
+        MatchState = matchState ?? throw new ArgumentNullException(nameof(matchState));
+        LegalCommands = legalCommands ?? throw new ArgumentNullException(nameof(legalCommands));
+        ErrorMessage = errorMessage;
+    }
+
+    public bool Succeeded { get; }
+
+    public GameMatchState MatchState { get; }
+
+    public RoundCommandCatalog LegalCommands { get; }
+
+    public string? ErrorMessage { get; }
+}
+
+public sealed class RoundSetupSnapshot
+{
+    public RoundSetupSnapshot(
+        int? shuffleSeed,
+        int firstPlayerIndex,
+        int dealerIndex,
+        int cardsPerPlayer,
+        IEnumerable<Card> openingDiscardPile,
+        int initialStockCount)
+    {
+        ShuffleSeed = shuffleSeed;
+        FirstPlayerIndex = firstPlayerIndex;
+        DealerIndex = dealerIndex;
+        CardsPerPlayer = cardsPerPlayer;
+        OpeningDiscardPile = Array.AsReadOnly((openingDiscardPile ?? throw new ArgumentNullException(nameof(openingDiscardPile))).ToArray());
+        InitialStockCount = initialStockCount;
+    }
+
+    public int? ShuffleSeed { get; }
+
+    public int FirstPlayerIndex { get; }
+
+    public int DealerIndex { get; }
+
+    public int CardsPerPlayer { get; }
+
+    public IReadOnlyList<Card> OpeningDiscardPile { get; }
+
+    public int InitialStockCount { get; }
+}
+
+public sealed class PlayerSnapshot
+{
+    public PlayerSnapshot(int playerIndex, string name, int teamIndex, IEnumerable<Card> hand)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException("Player names must be non-empty.", nameof(name));
+        }
+
+        PlayerIndex = playerIndex;
+        Name = name;
+        TeamIndex = teamIndex;
+        Hand = Array.AsReadOnly((hand ?? throw new ArgumentNullException(nameof(hand))).ToArray());
+    }
+
+    public int PlayerIndex { get; }
+
+    public string Name { get; }
+
+    public int TeamIndex { get; }
+
+    public IReadOnlyList<Card> Hand { get; }
+}
+
+public sealed class MeldSnapshot
+{
+    public MeldSnapshot(IEnumerable<Card> cards)
+    {
+        Cards = Array.AsReadOnly((cards ?? throw new ArgumentNullException(nameof(cards))).ToArray());
+    }
+
+    public IReadOnlyList<Card> Cards { get; }
+}
+
+public sealed class TeamSnapshot
+{
+    public TeamSnapshot(int teamIndex, IEnumerable<int> playerIndexes, IEnumerable<MeldSnapshot> melds, int startingScore)
+    {
+        TeamIndex = teamIndex;
+        PlayerIndexes = Array.AsReadOnly((playerIndexes ?? throw new ArgumentNullException(nameof(playerIndexes))).ToArray());
+        Melds = Array.AsReadOnly((melds ?? throw new ArgumentNullException(nameof(melds))).ToArray());
+        StartingScore = startingScore;
+    }
+
+    public int TeamIndex { get; }
+
+    public IReadOnlyList<int> PlayerIndexes { get; }
+
+    public IReadOnlyList<MeldSnapshot> Melds { get; }
+
+    public int StartingScore { get; }
+}
+
+public sealed class GameRoundSnapshot
+{
+    public GameRoundSnapshot(
+        GameConfiguration configuration,
+        RoundSetupSnapshot setup,
+        IEnumerable<PlayerSnapshot> players,
+        IEnumerable<TeamSnapshot> teams,
+        IEnumerable<Card> stockPile,
+        IEnumerable<Card> discardPile,
+        int dealerIndex,
+        int currentPlayerIndex,
+        TurnPhase turnPhase,
+        int completedTurnCount,
+        RoundSummaryData? summary,
+        int currentTurnMeldPoints,
+        bool currentTurnStartedWithOpenTeam)
+    {
+        Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        Setup = setup ?? throw new ArgumentNullException(nameof(setup));
+        Players = Array.AsReadOnly((players ?? throw new ArgumentNullException(nameof(players))).ToArray());
+        Teams = Array.AsReadOnly((teams ?? throw new ArgumentNullException(nameof(teams))).ToArray());
+        StockPile = Array.AsReadOnly((stockPile ?? throw new ArgumentNullException(nameof(stockPile))).ToArray());
+        DiscardPile = Array.AsReadOnly((discardPile ?? throw new ArgumentNullException(nameof(discardPile))).ToArray());
+        DealerIndex = dealerIndex;
+        CurrentPlayerIndex = currentPlayerIndex;
+        TurnPhase = turnPhase;
+        CompletedTurnCount = completedTurnCount;
+        Summary = summary;
+        CurrentTurnMeldPoints = currentTurnMeldPoints;
+        CurrentTurnStartedWithOpenTeam = currentTurnStartedWithOpenTeam;
+    }
+
+    public GameConfiguration Configuration { get; }
+
+    public RoundSetupSnapshot Setup { get; }
+
+    public IReadOnlyList<PlayerSnapshot> Players { get; }
+
+    public IReadOnlyList<TeamSnapshot> Teams { get; }
+
+    public IReadOnlyList<Card> StockPile { get; }
+
+    public IReadOnlyList<Card> DiscardPile { get; }
+
+    public int DealerIndex { get; }
+
+    public int CurrentPlayerIndex { get; }
+
+    public TurnPhase TurnPhase { get; }
+
+    public int CompletedTurnCount { get; }
+
+    public RoundSummaryData? Summary { get; }
+
+    public int CurrentTurnMeldPoints { get; }
+
+    public bool CurrentTurnStartedWithOpenTeam { get; }
+}
+
+public sealed class GameMatchSnapshot
+{
+    public GameMatchSnapshot(
+        GameConfiguration configuration,
+        int winningScore,
+        IEnumerable<int> teamScores,
+        IEnumerable<MatchRoundRecord> roundHistory,
+        GameRoundSnapshot currentRound,
+        IEnumerable<int>? winningTeamIndexes = null)
+    {
+        Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        WinningScore = winningScore;
+        TeamScores = Array.AsReadOnly((teamScores ?? throw new ArgumentNullException(nameof(teamScores))).ToArray());
+        RoundHistory = Array.AsReadOnly((roundHistory ?? throw new ArgumentNullException(nameof(roundHistory))).ToArray());
+        CurrentRound = currentRound ?? throw new ArgumentNullException(nameof(currentRound));
+        WinningTeamIndexes = Array.AsReadOnly((winningTeamIndexes ?? []).ToArray());
+    }
+
+    public GameConfiguration Configuration { get; }
+
+    public int WinningScore { get; }
+
+    public IReadOnlyList<int> TeamScores { get; }
+
+    public IReadOnlyList<MatchRoundRecord> RoundHistory { get; }
+
+    public GameRoundSnapshot CurrentRound { get; }
+
+    public IReadOnlyList<int> WinningTeamIndexes { get; }
+}
+
 public sealed class PlayerState
 {
     public PlayerState(int playerIndex, string name, int teamIndex, IEnumerable<Card> hand)
@@ -1352,6 +2138,14 @@ public enum RoundStartPlayerRule
 {
     NextPlayerAfterDealer,
     DealerStartsRound
+}
+
+public enum GameCommandType
+{
+    DrawFromStock,
+    DrawFromDiscardPile,
+    Meld,
+    Discard
 }
 
 public enum CanastaKind
