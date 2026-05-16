@@ -7,6 +7,8 @@ namespace CanastaNET.Desktop.Core;
 
 public sealed class CanastaWorkspaceViewModel : ObservableObject
 {
+    private const int MaxRecentMatchCount = 5;
+
     private static readonly SetupPresetViewModel[] BuiltInSetupPresets =
     [
         new(
@@ -434,7 +436,7 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
         var fullPath = Path.GetFullPath(path);
         var updated = new[] { RecentMatchEntryViewModel.Create(fullPath, actionDescription, TableOverview.RoundNumber, TableOverview.CurrentPlayerName, TableOverview.TurnPhase) }
             .Concat(RecentMatches.Where(entry => !string.Equals(entry.Path, fullPath, StringComparison.OrdinalIgnoreCase)))
-            .Take(5)
+            .Take(MaxRecentMatchCount)
             .ToArray();
 
         RecentMatches = updated;
@@ -895,6 +897,8 @@ public sealed record SetupPresetViewModel(
     string? SeedText,
     string? NextRoundSeedText)
 {
+    private static readonly HashSet<char> InvalidFileNameCharacters = Path.GetInvalidFileNameChars().ToHashSet();
+
     public string DefaultSnapshotFileName => $"{CreateFileSafeSlug(Name)}.canasta.json";
 
     public void Apply(MatchSetupViewModel setup)
@@ -913,11 +917,10 @@ public sealed record SetupPresetViewModel(
 
     private static string CreateFileSafeSlug(string value)
     {
-        var invalidCharacters = Path.GetInvalidFileNameChars();
         var sanitized = new string(value
             .Trim()
             .ToLowerInvariant()
-            .Select(character => invalidCharacters.Contains(character) ? '-' : character)
+            .Select(character => InvalidFileNameCharacters.Contains(character) ? '-' : character)
             .ToArray());
 
         sanitized = string.Join("-", sanitized
