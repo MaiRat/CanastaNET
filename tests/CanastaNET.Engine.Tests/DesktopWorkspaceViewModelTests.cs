@@ -269,15 +269,26 @@ public class DesktopWorkspaceViewModelTests
     public void MainWindowXaml_ExpandsSideSeatHandsVertically()
     {
         var xaml = File.ReadAllText(GetMainWindowXamlPath());
+        var leftSeatSection = ExtractSection(
+            xaml,
+            "<Border Grid.Row=\"1\"\n                        Grid.Column=\"0\">",
+            "                </Border>");
+        var rightSeatSection = ExtractSection(
+            xaml,
+            "<Border Grid.Row=\"1\"\n                        Grid.Column=\"4\">",
+            "                </Border>");
 
-        Assert.Matches(new Regex(
-            "Grid.Row=\\\"1\\\"[\\s\\S]*?Grid.Column=\\\"0\\\"[\\s\\S]*?<Grid Margin=\\\"0,0,18,0\\\">[\\s\\S]*?<RowDefinition Height=\\\"Auto\\\" />[\\s\\S]*?<RowDefinition Height=\\\"\\*\\\" />[\\s\\S]*?<ScrollViewer Grid.Row=\\\"1\\\"",
-            RegexOptions.CultureInvariant),
-            xaml);
-        Assert.Matches(new Regex(
-            "Grid.Row=\\\"1\\\"[\\s\\S]*?Grid.Column=\\\"4\\\"[\\s\\S]*?<Grid Margin=\\\"18,0,0,0\\\">[\\s\\S]*?<RowDefinition Height=\\\"Auto\\\" />[\\s\\S]*?<RowDefinition Height=\\\"\\*\\\" />[\\s\\S]*?<ScrollViewer Grid.Row=\\\"1\\\"",
-            RegexOptions.CultureInvariant),
-            xaml);
+        Assert.Contains("<Grid Margin=\"0,0,18,0\">", leftSeatSection, StringComparison.Ordinal);
+        Assert.Contains("<RowDefinition Height=\"Auto\" />", leftSeatSection, StringComparison.Ordinal);
+        Assert.Contains("<RowDefinition Height=\"*\" />", leftSeatSection, StringComparison.Ordinal);
+        Assert.Contains("<ScrollViewer Grid.Row=\"1\"", leftSeatSection, StringComparison.Ordinal);
+        Assert.DoesNotContain("Margin=\"0,68,18,68\"", leftSeatSection, StringComparison.Ordinal);
+
+        Assert.Contains("<Grid Margin=\"18,0,0,0\">", rightSeatSection, StringComparison.Ordinal);
+        Assert.Contains("<RowDefinition Height=\"Auto\" />", rightSeatSection, StringComparison.Ordinal);
+        Assert.Contains("<RowDefinition Height=\"*\" />", rightSeatSection, StringComparison.Ordinal);
+        Assert.Contains("<ScrollViewer Grid.Row=\"1\"", rightSeatSection, StringComparison.Ordinal);
+        Assert.DoesNotContain("Margin=\"18,68,0,68\"", rightSeatSection, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -317,6 +328,17 @@ public class DesktopWorkspaceViewModelTests
     {
         var repositoryRoot = FindRepositoryRoot();
         return Path.Combine(repositoryRoot, "desktop", "CanastaNET.Desktop", "App.xaml");
+    }
+
+    private static string ExtractSection(string source, string startMarker, string endMarker)
+    {
+        var startIndex = source.IndexOf(startMarker, StringComparison.Ordinal);
+        Assert.True(startIndex >= 0, $"Expected to find start marker '{startMarker}'.");
+
+        var endIndex = source.IndexOf(endMarker, startIndex, StringComparison.Ordinal);
+        Assert.True(endIndex >= 0, $"Expected to find end marker '{endMarker}'.");
+
+        return source[startIndex..(endIndex + endMarker.Length)];
     }
 
     private static string FindRepositoryRoot()
