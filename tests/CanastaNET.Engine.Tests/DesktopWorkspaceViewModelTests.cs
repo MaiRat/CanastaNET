@@ -249,10 +249,12 @@ public class DesktopWorkspaceViewModelTests
         Assert.Contains("x:Key=\"OverlappedVerticalHandItemStyle\"", xaml, StringComparison.Ordinal);
         Assert.Contains("<Thickness x:Key=\"DefaultHorizontalHandOverlapMargin\">0,0,-96,0</Thickness>", xaml, StringComparison.Ordinal);
         Assert.Contains("<Thickness x:Key=\"DefaultVerticalHandOverlapMargin\">0,0,0,-144</Thickness>", xaml, StringComparison.Ordinal);
+        Assert.Contains("<sys:Double x:Key=\"DefaultCardScale\">0.94</sys:Double>", xaml, StringComparison.Ordinal);
         Assert.Contains("<sys:Double x:Key=\"TopSeatCardLaneHeight\">176</sys:Double>", xaml, StringComparison.Ordinal);
         Assert.Contains("<Setter Property=\"Margin\" Value=\"{StaticResource DefaultHorizontalHandOverlapMargin}\" />", xaml, StringComparison.Ordinal);
         Assert.Contains("<Setter Property=\"Margin\" Value=\"{StaticResource DefaultVerticalHandOverlapMargin}\" />", xaml, StringComparison.Ordinal);
-        Assert.Contains("<ScaleTransform ScaleX=\"0.94\" ScaleY=\"0.94\" />", xaml, StringComparison.Ordinal);
+        Assert.Contains("<ScaleTransform ScaleX=\"{StaticResource DefaultCardScale}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("ScaleY=\"{StaticResource DefaultCardScale}\" />", xaml, StringComparison.Ordinal);
         Assert.Contains("<ScaleTransform ScaleX=\"0.86\" ScaleY=\"0.86\" />", xaml, StringComparison.Ordinal);
         Assert.Contains("<ScaleTransform ScaleX=\"0.82\" ScaleY=\"0.82\" />", xaml, StringComparison.Ordinal);
         Assert.Matches(new Regex(
@@ -342,6 +344,10 @@ public class DesktopWorkspaceViewModelTests
         Assert.DoesNotContain("Text=\"Stock pile\"", xaml, StringComparison.Ordinal);
         Assert.DoesNotContain("Text=\"Discard pile\"", xaml, StringComparison.Ordinal);
         Assert.DoesNotContain("TableOverview.StockCount", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"♠\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"♥\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"♣\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"♦\"", xaml, StringComparison.Ordinal);
         Assert.Contains("<sys:Double x:Key=\"StockPileWidth\">102</sys:Double>", xaml, StringComparison.Ordinal);
         Assert.Contains("<sys:Double x:Key=\"StockPileHeight\">154</sys:Double>", xaml, StringComparison.Ordinal);
         Assert.Contains("<Grid Width=\"{StaticResource StockPileWidth}\"", xaml, StringComparison.Ordinal);

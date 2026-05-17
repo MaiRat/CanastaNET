@@ -21,6 +21,7 @@
     </Window.InputBindings>
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <sys:Double x:Key="DefaultCardScale">0.94</sys:Double>
         <sys:Double x:Key="TopSeatCardLaneHeight">176</sys:Double>
         <sys:Double x:Key="StockPileWidth">102</sys:Double>
         <sys:Double x:Key="StockPileHeight">154</sys:Double>
@@ -65,7 +66,8 @@
             <Setter Property="Effect" Value="{StaticResource CardShadowEffect}" />
             <Setter Property="LayoutTransform">
                 <Setter.Value>
-                    <ScaleTransform ScaleX="0.94" ScaleY="0.94" />
+                    <ScaleTransform ScaleX="{StaticResource DefaultCardScale}"
+                                    ScaleY="{StaticResource DefaultCardScale}" />
                 </Setter.Value>
             </Setter>
             <Setter Property="SnapsToDevicePixels" Value="True" />
@@ -578,7 +580,34 @@
                                             BorderBrush="#FF4F9DED"
                                             BorderThickness="1.4"
                                             CornerRadius="14"
-                                            Effect="{StaticResource CardShadowEffect}" />
+                                            Effect="{StaticResource CardShadowEffect}">
+                                        <Grid>
+                                            <Border Margin="20"
+                                                    Background="#154F9DED"
+                                                    CornerRadius="10" />
+                                            <UniformGrid Rows="2"
+                                                         Columns="2"
+                                                         HorizontalAlignment="Center"
+                                                         VerticalAlignment="Center">
+                                                <TextBlock Margin="0,0,6,6"
+                                                           FontSize="18"
+                                                           Foreground="#A64F9DED"
+                                                           Text="♠" />
+                                                <TextBlock Margin="6,0,0,6"
+                                                           FontSize="18"
+                                                           Foreground="#A64F9DED"
+                                                           Text="♥" />
+                                                <TextBlock Margin="0,6,6,0"
+                                                           FontSize="18"
+                                                           Foreground="#A64F9DED"
+                                                           Text="♣" />
+                                                <TextBlock Margin="6,6,0,0"
+                                                           FontSize="18"
+                                                           Foreground="#A64F9DED"
+                                                           Text="♦" />
+                                            </UniformGrid>
+                                        </Grid>
+                                    </Border>
                                 </Grid>
 
                                 <ContentPresenter Grid.Column="2"
