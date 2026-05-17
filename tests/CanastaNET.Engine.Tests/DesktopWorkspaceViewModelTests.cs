@@ -130,7 +130,7 @@ public class DesktopWorkspaceViewModelTests
     }
 
     [Fact]
-    public void CardPresentation_ExposesStyledMetadata_ForTableArtwork()
+    public void CardVisuals_ExposeFormattedProperties()
     {
         var workspace = new CanastaWorkspaceViewModel();
         Assert.NotNull(workspace.CurrentPlayerHand);
@@ -148,13 +148,19 @@ public class DesktopWorkspaceViewModelTests
     }
 
     [Fact]
-    public void ViewSettings_DefaultToDetailedCardPresentation_AndCanBeChanged()
+    public void ViewSettings_DefaultToDetailedPresentation()
     {
         var workspace = new CanastaWorkspaceViewModel();
 
         Assert.True(workspace.ShowCardPointBadges);
         Assert.True(workspace.ShowDeckRibbons);
         Assert.False(workspace.UseCompactCardSpacing);
+    }
+
+    [Fact]
+    public void ViewSettings_CanBeModified()
+    {
+        var workspace = new CanastaWorkspaceViewModel();
 
         workspace.ShowCardPointBadges = false;
         workspace.ShowDeckRibbons = false;

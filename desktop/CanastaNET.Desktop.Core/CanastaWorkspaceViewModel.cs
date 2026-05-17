@@ -1035,6 +1035,18 @@ public sealed record RecentMatchEntryViewModel(string Path, string Summary)
 
 internal static class CardFormatter
 {
+    private const string HeartAccentColor = "#FFC63D51";
+    private const string DiamondAccentColor = "#FFCB6C36";
+    private const string ClubAccentColor = "#FF2F5D50";
+    private const string SpadeAccentColor = "#FF35506B";
+    private const string JokerAccentColor = "#FF9866D3";
+
+    private const string HeartSurfaceColor = "#FFFFF7F8";
+    private const string DiamondSurfaceColor = "#FFFFF8F3";
+    private const string ClubSurfaceColor = "#FFF5FBF9";
+    private const string SpadeSurfaceColor = "#FFF5F8FD";
+    private const string JokerSurfaceColor = "#FFF8F3FF";
+
     public static string Format(Card card) => $"#{card.InstanceId} {card} [{card.PointValue} pts]";
 
     public static string FormatRank(Card card) => card.Rank switch
@@ -1064,20 +1076,20 @@ internal static class CardFormatter
 
     public static string GetAccentColor(Card card) => card.Suit switch
     {
-        CardSuit.Hearts => "#FFC63D51",
-        CardSuit.Diamonds => "#FFCB6C36",
-        CardSuit.Clubs => "#FF2F5D50",
-        CardSuit.Spades => "#FF35506B",
-        _ => "#FF9866D3"
+        CardSuit.Hearts => HeartAccentColor,
+        CardSuit.Diamonds => DiamondAccentColor,
+        CardSuit.Clubs => ClubAccentColor,
+        CardSuit.Spades => SpadeAccentColor,
+        _ => JokerAccentColor
     };
 
     public static string GetSurfaceColor(Card card) => card.Suit switch
     {
-        CardSuit.Hearts => "#FFFFF7F8",
-        CardSuit.Diamonds => "#FFFFF8F3",
-        CardSuit.Clubs => "#FFF5FBF9",
-        CardSuit.Spades => "#FFF5F8FD",
-        _ => "#FFF8F3FF"
+        CardSuit.Hearts => HeartSurfaceColor,
+        CardSuit.Diamonds => DiamondSurfaceColor,
+        CardSuit.Clubs => ClubSurfaceColor,
+        CardSuit.Spades => SpadeSurfaceColor,
+        _ => JokerSurfaceColor
     };
 }
 
