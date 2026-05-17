@@ -806,7 +806,7 @@ public sealed class PlayerHandViewModel
         IReadOnlyDictionary<int, bool> selections)
     {
         var cards = snapshot.Hand
-            .Select(card => new CardItemViewModel(card, isCurrentPlayer, selectionChanged)
+            .Select(card => new CardItemViewModel(card, canSelect: true, selectionChanged)
             {
                 IsSelected = selections.TryGetValue(card.InstanceId, out var selected) && selected
             })

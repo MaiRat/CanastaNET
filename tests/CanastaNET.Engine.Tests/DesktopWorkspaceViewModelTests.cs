@@ -220,6 +220,24 @@ public class DesktopWorkspaceViewModelTests
     }
 
     [Fact]
+    public void PlayerHands_AllowSelectingCardsForEverySeat_WithoutChangingCurrentTurnSelectionCount()
+    {
+        var workspace = new CanastaWorkspaceViewModel();
+        Assert.NotEmpty(workspace.WaitingPlayerHands);
+        Assert.NotEmpty(workspace.WaitingPlayerHands.First().Cards);
+        var waitingCard = workspace.WaitingPlayerHands.First().Cards.First();
+
+        Assert.All(workspace.PlayerHands, hand => Assert.All(hand.Cards, card => Assert.True(card.CanSelect)));
+
+        waitingCard.IsSelected = true;
+
+        Assert.True(waitingCard.IsSelected);
+        Assert.Equal(0, workspace.SelectedCurrentPlayerCardCount);
+        Assert.True(workspace.ShowDrawActions);
+        Assert.False(workspace.ShowSelectionPrompt);
+    }
+
+    [Fact]
     public void MainWindowXaml_UsesOnlyValidHexColorTokenLengths()
     {
         var repositoryRoot = FindRepositoryRoot();
@@ -241,26 +259,26 @@ public class DesktopWorkspaceViewModelTests
     }
 
     [Fact]
-    public void MainWindowXaml_UsesFixedSizeOverlappedHandsAroundTheTable()
+    public void MainWindowXaml_UsesResponsiveWrapHandLayoutsAroundTheTable()
     {
         var xaml = File.ReadAllText(GetMainWindowXamlPath());
 
         Assert.Contains("<Setter Property=\"Width\" Value=\"102\" />", xaml, StringComparison.Ordinal);
         Assert.Contains("<Setter Property=\"Height\" Value=\"154\" />", xaml, StringComparison.Ordinal);
         Assert.Matches(new Regex(
-            "ItemsControl ItemsSource=\\\"\\{Binding TopSeatHand\\.Cards\\}\\\"[\\s\\S]*?ItemContainerStyle=\\\"\\{StaticResource OverlappedHorizontalHandItemStyle\\}\\\"[\\s\\S]*?<StackPanel Orientation=\\\"Horizontal\\\"\\s*/>",
+            "ItemsControl ItemsSource=\\\"\\{Binding TopSeatHand\\.Cards\\}\\\"[\\s\\S]*?ItemContainerStyle=\\\"\\{StaticResource OverlappedHorizontalHandItemStyle\\}\\\"[\\s\\S]*?<WrapPanel Orientation=\\\"Horizontal\\\"\\s*/>[\\s\\S]*?PlayableCardTemplate",
             RegexOptions.CultureInvariant),
             xaml);
         Assert.Matches(new Regex(
-            "ItemsControl Grid\\.Row=\\\"1\\\"[\\s\\S]*?ItemContainerStyle=\\\"\\{StaticResource OverlappedVerticalHandItemStyle\\}\\\"[\\s\\S]*?ItemsSource=\\\"\\{Binding LeftSeatHand\\.Cards\\}\\\"[\\s\\S]*?<StackPanel Orientation=\\\"Vertical\\\"\\s*/>",
+            "ItemsControl Grid\\.Row=\\\"1\\\"[\\s\\S]*?ItemContainerStyle=\\\"\\{StaticResource OverlappedVerticalHandItemStyle\\}\\\"[\\s\\S]*?ItemsSource=\\\"\\{Binding LeftSeatHand\\.Cards\\}\\\"[\\s\\S]*?<WrapPanel Orientation=\\\"Vertical\\\"\\s*/>[\\s\\S]*?PlayableCardTemplate",
             RegexOptions.CultureInvariant),
             xaml);
         Assert.Matches(new Regex(
-            "ItemsControl Grid\\.Row=\\\"1\\\"[\\s\\S]*?ItemContainerStyle=\\\"\\{StaticResource OverlappedVerticalHandItemStyle\\}\\\"[\\s\\S]*?ItemsSource=\\\"\\{Binding RightSeatHand\\.Cards\\}\\\"[\\s\\S]*?<StackPanel Orientation=\\\"Vertical\\\"\\s*/>",
+            "ItemsControl Grid\\.Row=\\\"1\\\"[\\s\\S]*?ItemContainerStyle=\\\"\\{StaticResource OverlappedVerticalHandItemStyle\\}\\\"[\\s\\S]*?ItemsSource=\\\"\\{Binding RightSeatHand\\.Cards\\}\\\"[\\s\\S]*?<WrapPanel Orientation=\\\"Vertical\\\"\\s*/>[\\s\\S]*?PlayableCardTemplate",
             RegexOptions.CultureInvariant),
             xaml);
         Assert.Matches(new Regex(
-            "ItemsControl ItemsSource=\\\"\\{Binding BottomSeatHand\\.Cards\\}\\\"[\\s\\S]*?ItemContainerStyle=\\\"\\{StaticResource OverlappedHorizontalHandItemStyle\\}\\\"[\\s\\S]*?<StackPanel Orientation=\\\"Horizontal\\\"\\s*/>",
+            "ItemsControl ItemsSource=\\\"\\{Binding BottomSeatHand\\.Cards\\}\\\"[\\s\\S]*?ItemContainerStyle=\\\"\\{StaticResource OverlappedHorizontalHandItemStyle\\}\\\"[\\s\\S]*?<WrapPanel Orientation=\\\"Horizontal\\\"\\s*/>[\\s\\S]*?PlayableCardTemplate",
             RegexOptions.CultureInvariant),
             xaml);
         Assert.DoesNotContain("DefaultCardScale", xaml, StringComparison.Ordinal);
@@ -289,7 +307,8 @@ public class DesktopWorkspaceViewModelTests
         Assert.Contains("<RowDefinition Height=\"*\" />", leftSeatSection, StringComparison.Ordinal);
         Assert.Contains("<ItemsControl Grid.Row=\"1\"", leftSeatSection, StringComparison.Ordinal);
         Assert.Contains("ItemContainerStyle=\"{StaticResource OverlappedVerticalHandItemStyle}\"", leftSeatSection, StringComparison.Ordinal);
-        Assert.Contains("<StackPanel Orientation=\"Vertical\" />", leftSeatSection, StringComparison.Ordinal);
+        Assert.Contains("<WrapPanel Orientation=\"Vertical\" />", leftSeatSection, StringComparison.Ordinal);
+        Assert.Contains("PlayableCardTemplate", leftSeatSection, StringComparison.Ordinal);
         Assert.Contains("FontSize=\"12\"", leftSeatSection, StringComparison.Ordinal);
         Assert.DoesNotContain("<ScrollViewer", leftSeatSection, StringComparison.Ordinal);
         Assert.DoesNotContain("TopSeatHand.CardCount", xaml, StringComparison.Ordinal);
@@ -301,7 +320,8 @@ public class DesktopWorkspaceViewModelTests
         Assert.Contains("<RowDefinition Height=\"*\" />", rightSeatSection, StringComparison.Ordinal);
         Assert.Contains("<ItemsControl Grid.Row=\"1\"", rightSeatSection, StringComparison.Ordinal);
         Assert.Contains("ItemContainerStyle=\"{StaticResource OverlappedVerticalHandItemStyle}\"", rightSeatSection, StringComparison.Ordinal);
-        Assert.Contains("<StackPanel Orientation=\"Vertical\" />", rightSeatSection, StringComparison.Ordinal);
+        Assert.Contains("<WrapPanel Orientation=\"Vertical\" />", rightSeatSection, StringComparison.Ordinal);
+        Assert.Contains("PlayableCardTemplate", rightSeatSection, StringComparison.Ordinal);
         Assert.Contains("FontSize=\"12\"", rightSeatSection, StringComparison.Ordinal);
         Assert.DoesNotContain("<ScrollViewer", rightSeatSection, StringComparison.Ordinal);
         Assert.DoesNotContain("RightSeatHand.CardCount", rightSeatSection, StringComparison.Ordinal);

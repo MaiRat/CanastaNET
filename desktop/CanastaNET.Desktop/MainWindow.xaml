@@ -402,16 +402,16 @@
                          <ItemsControl ItemsSource="{Binding TopSeatHand.Cards}"
                                        HorizontalAlignment="Center"
                                        ItemContainerStyle="{StaticResource OverlappedHorizontalHandItemStyle}"
-                                        Margin="0,0,0,4">
-                             <ItemsControl.ItemsPanel>
-                                  <ItemsPanelTemplate>
-                                      <StackPanel Orientation="Horizontal" />
-                                  </ItemsPanelTemplate>
-                              </ItemsControl.ItemsPanel>
-                              <ItemsControl.ItemTemplate>
-                                 <StaticResource ResourceKey="DisplayCardTemplate" />
-                             </ItemsControl.ItemTemplate>
-                         </ItemsControl>
+                                         Margin="0,0,0,4">
+                              <ItemsControl.ItemsPanel>
+                                   <ItemsPanelTemplate>
+                                       <WrapPanel Orientation="Horizontal" />
+                                   </ItemsPanelTemplate>
+                               </ItemsControl.ItemsPanel>
+                               <ItemsControl.ItemTemplate>
+                                  <StaticResource ResourceKey="PlayableCardTemplate" />
+                              </ItemsControl.ItemTemplate>
+                          </ItemsControl>
                      </StackPanel>
                  </Border>
 
@@ -437,19 +437,19 @@
                                     FontSize="12"
                                     Foreground="{StaticResource MutedTextBrush}"
                                     Text="{Binding LeftSeatHand.Name}" />
-                         <ItemsControl Grid.Row="1"
-                                       ItemContainerStyle="{StaticResource OverlappedVerticalHandItemStyle}"
-                                        Margin="0,4,0,0"
-                                        ItemsSource="{Binding LeftSeatHand.Cards}">
-                              <ItemsControl.ItemsPanel>
-                                  <ItemsPanelTemplate>
-                                      <StackPanel Orientation="Vertical" />
-                                  </ItemsPanelTemplate>
-                              </ItemsControl.ItemsPanel>
-                              <ItemsControl.ItemTemplate>
-                                 <StaticResource ResourceKey="DisplayCardTemplate" />
-                             </ItemsControl.ItemTemplate>
-                         </ItemsControl>
+                          <ItemsControl Grid.Row="1"
+                                        ItemContainerStyle="{StaticResource OverlappedVerticalHandItemStyle}"
+                                         Margin="0,4,0,0"
+                                         ItemsSource="{Binding LeftSeatHand.Cards}">
+                               <ItemsControl.ItemsPanel>
+                                   <ItemsPanelTemplate>
+                                       <WrapPanel Orientation="Vertical" />
+                                   </ItemsPanelTemplate>
+                               </ItemsControl.ItemsPanel>
+                               <ItemsControl.ItemTemplate>
+                                  <StaticResource ResourceKey="PlayableCardTemplate" />
+                              </ItemsControl.ItemTemplate>
+                          </ItemsControl>
                      </Grid>
                  </Border>
 
@@ -553,19 +553,19 @@
                                     FontSize="12"
                                     Foreground="{StaticResource MutedTextBrush}"
                                     Text="{Binding RightSeatHand.Name}" />
-                         <ItemsControl Grid.Row="1"
-                                       ItemContainerStyle="{StaticResource OverlappedVerticalHandItemStyle}"
-                                        Margin="0,4,0,0"
-                                        ItemsSource="{Binding RightSeatHand.Cards}">
-                              <ItemsControl.ItemsPanel>
-                                  <ItemsPanelTemplate>
-                                      <StackPanel Orientation="Vertical" />
-                                  </ItemsPanelTemplate>
-                              </ItemsControl.ItemsPanel>
-                              <ItemsControl.ItemTemplate>
-                                 <StaticResource ResourceKey="DisplayCardTemplate" />
-                             </ItemsControl.ItemTemplate>
-                         </ItemsControl>
+                          <ItemsControl Grid.Row="1"
+                                        ItemContainerStyle="{StaticResource OverlappedVerticalHandItemStyle}"
+                                         Margin="0,4,0,0"
+                                         ItemsSource="{Binding RightSeatHand.Cards}">
+                               <ItemsControl.ItemsPanel>
+                                   <ItemsPanelTemplate>
+                                       <WrapPanel Orientation="Vertical" />
+                                   </ItemsPanelTemplate>
+                               </ItemsControl.ItemsPanel>
+                               <ItemsControl.ItemTemplate>
+                                  <StaticResource ResourceKey="PlayableCardTemplate" />
+                              </ItemsControl.ItemTemplate>
+                          </ItemsControl>
                      </Grid>
                  </Border>
 
@@ -635,17 +635,17 @@
                                          automation:AutomationProperties.Name="Start the next round" />
                              </WrapPanel>
                          </StackPanel>
-                          <ItemsControl ItemsSource="{Binding BottomSeatHand.Cards}"
-                                        HorizontalAlignment="Center"
-                                        ItemContainerStyle="{StaticResource OverlappedHorizontalHandItemStyle}">
-                              <ItemsControl.ItemsPanel>
-                                  <ItemsPanelTemplate>
-                                      <StackPanel Orientation="Horizontal" />
-                                  </ItemsPanelTemplate>
-                              </ItemsControl.ItemsPanel>
-                              <ItemsControl.ItemTemplate>
-                                 <StaticResource ResourceKey="PlayableCardTemplate" />
-                             </ItemsControl.ItemTemplate>
+                           <ItemsControl ItemsSource="{Binding BottomSeatHand.Cards}"
+                                         HorizontalAlignment="Center"
+                                         ItemContainerStyle="{StaticResource OverlappedHorizontalHandItemStyle}">
+                               <ItemsControl.ItemsPanel>
+                                   <ItemsPanelTemplate>
+                                       <WrapPanel Orientation="Horizontal" />
+                                   </ItemsPanelTemplate>
+                               </ItemsControl.ItemsPanel>
+                               <ItemsControl.ItemTemplate>
+                                  <StaticResource ResourceKey="PlayableCardTemplate" />
+                              </ItemsControl.ItemTemplate>
                          </ItemsControl>
                      </StackPanel>
                  </Border>
