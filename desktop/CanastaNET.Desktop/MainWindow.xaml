@@ -355,8 +355,8 @@
                     <StackPanel>
                         <TextBlock Text="{Binding NextActionPrompt}"
                                    automation:AutomationProperties.Name="Next action prompt"
-                                    TextWrapping="Wrap"
-                                    automation:AutomationProperties.HelpText="Suggested next legal action for the current table state." />
+                                   TextWrapping="Wrap"
+                                   automation:AutomationProperties.HelpText="Suggested next legal action for the current table state." />
                     </StackPanel>
                 </Border>
             </Grid>
@@ -410,13 +410,6 @@
                                     automation:AutomationProperties.Name="Start the next round" />
                         </WrapPanel>
                     </GroupBox>
-
-                    <TextBlock Margin="0,8,0,0"
-                               Foreground="{StaticResource MutedTextBrush}"
-                               Text="{Binding NextActionPrompt}"
-                               automation:AutomationProperties.Name="Selection prompt"
-                               TextWrapping="Wrap"
-                               Visibility="{Binding ShowSelectionPrompt, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
                     <Expander Header="Match setup"
                               IsExpanded="False"
@@ -643,9 +636,9 @@
                                     <StackPanel>
                                         <TextBlock FontSize="24" FontWeight="SemiBold" Text="{Binding CurrentPlayerHand.Name, TargetNullValue=No active hand}" />
                                         <TextBlock Margin="0,8,0,0"
-                                                    FontSize="18"
-                                                   FontWeight="SemiBold"
-                                                   Text="{Binding CurrentPlayerHand.CardCount, StringFormat={}{0} cards}" />
+                                                   FontSize="18"
+                                                    FontWeight="SemiBold"
+                                                    Text="{Binding CurrentPlayerHand.CardCount, StringFormat={}{0} cards}" />
                                     </StackPanel>
                                 </Grid>
                             </Border>
