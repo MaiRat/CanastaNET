@@ -1,5 +1,6 @@
 using CanastaNET.Desktop.Core;
 using CanastaNET.Engine;
+using System.Text.RegularExpressions;
 
 namespace CanastaNET.Engine.Tests;
 
@@ -216,5 +217,22 @@ public class DesktopWorkspaceViewModelTests
         Assert.NotNull(workspace.TopSeatHand);
         Assert.Null(workspace.LeftSeatHand);
         Assert.Null(workspace.RightSeatHand);
+    }
+
+    [Fact]
+    public void MainWindowXaml_UsesOnlyValidHexColorTokenLengths()
+    {
+        var repositoryRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
+        var mainWindowXamlPath = Path.Combine(repositoryRoot, "desktop", "CanastaNET.Desktop", "MainWindow.xaml");
+
+        Assert.True(File.Exists(mainWindowXamlPath), $"Expected desktop XAML at {mainWindowXamlPath}.");
+
+        var xaml = File.ReadAllText(mainWindowXamlPath);
+        var colorTokens = Regex.Matches(xaml, @"#[0-9A-Fa-f]+")
+            .Select(match => match.Value)
+            .ToArray();
+
+        Assert.NotEmpty(colorTokens);
+        Assert.All(colorTokens, token => Assert.Contains(token.Length, new[] { 4, 5, 7, 9 }));
     }
 }
