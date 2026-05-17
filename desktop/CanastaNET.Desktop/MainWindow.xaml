@@ -438,7 +438,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <StackPanel DockPanel.Dock="Top">
+                        <StackPanel>
                             <TextBlock FontSize="18"
                                        FontWeight="SemiBold"
                                        Text="{Binding LeftSeatHand.Name}" />
@@ -792,7 +792,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <StackPanel DockPanel.Dock="Top">
+                        <StackPanel>
                             <TextBlock FontSize="18"
                                        FontWeight="SemiBold"
                                        Text="{Binding RightSeatHand.Name}" />
