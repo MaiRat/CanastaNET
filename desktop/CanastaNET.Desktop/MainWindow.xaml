@@ -21,17 +21,17 @@
     </Window.InputBindings>
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-        <sys:Double x:Key="TopSeatCardLaneHeight">188</sys:Double>
-        <sys:Double x:Key="StockPileWidth">108</sys:Double>
-        <sys:Double x:Key="StockPileHeight">162</sys:Double>
+        <sys:Double x:Key="TopSeatCardLaneHeight">176</sys:Double>
+        <sys:Double x:Key="StockPileWidth">102</sys:Double>
+        <sys:Double x:Key="StockPileHeight">154</sys:Double>
         <GridLength x:Key="CentralPileSpacerWidth">20</GridLength>
-        <Thickness x:Key="DefaultHorizontalHandOverlapMargin">0,0,-90,0</Thickness>
-        <Thickness x:Key="CompactHorizontalHandOverlapMargin">0,0,-78,0</Thickness>
-        <Thickness x:Key="DefaultVerticalHandOverlapMargin">0,0,0,-136</Thickness>
-        <Thickness x:Key="CompactVerticalHandOverlapMargin">0,0,0,-120</Thickness>
-        <Thickness x:Key="VerticalHandScrollPadding">0,0,0,92</Thickness>
-        <Thickness x:Key="TopSeatMargin">28,10,28,16</Thickness>
-        <Thickness x:Key="BottomSeatMargin">28,16,28,0</Thickness>
+        <Thickness x:Key="DefaultHorizontalHandOverlapMargin">0,0,-96,0</Thickness>
+        <Thickness x:Key="CompactHorizontalHandOverlapMargin">0,0,-84,0</Thickness>
+        <Thickness x:Key="DefaultVerticalHandOverlapMargin">0,0,0,-144</Thickness>
+        <Thickness x:Key="CompactVerticalHandOverlapMargin">0,0,0,-128</Thickness>
+        <Thickness x:Key="VerticalHandScrollPadding">0,0,0,84</Thickness>
+        <Thickness x:Key="TopSeatMargin">24,8,24,10</Thickness>
+        <Thickness x:Key="BottomSeatMargin">24,10,24,0</Thickness>
 
         <Style x:Key="FadeInBorderStyle" TargetType="Border">
             <Setter Property="Opacity" Value="0" />
@@ -63,6 +63,11 @@
             <Setter Property="CornerRadius" Value="10" />
             <Setter Property="BorderThickness" Value="1.4" />
             <Setter Property="Effect" Value="{StaticResource CardShadowEffect}" />
+            <Setter Property="LayoutTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="0.94" ScaleY="0.94" />
+                </Setter.Value>
+            </Setter>
             <Setter Property="SnapsToDevicePixels" Value="True" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding DataContext.UseCompactCardSpacing, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
@@ -545,76 +550,42 @@
                                            automation:AutomationProperties.HelpText="Latest feedback from the workspace." />
                             </Border>
 
-                            <StackPanel Grid.Row="2"
-                                        Grid.ColumnSpan="2"
-                                        Margin="0,14,0,0">
-                                <TextBlock FontSize="12"
-                                           Foreground="{StaticResource MutedTextBrush}"
-                                           Text="Central piles" />
-                                <Grid Margin="0,6,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="{StaticResource CentralPileSpacerWidth}" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
+                            <Grid Grid.Row="2"
+                                  Grid.ColumnSpan="2"
+                                  Margin="0,14,0,0"
+                                  HorizontalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="{StaticResource CentralPileSpacerWidth}" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
 
-                                    <StackPanel HorizontalAlignment="Center">
-                                        <TextBlock Margin="0,0,0,8"
-                                                   FontSize="12"
-                                                   Foreground="{StaticResource MutedTextBrush}"
-                                                   Text="Stock pile" />
-                                        <Grid Width="{StaticResource StockPileWidth}"
-                                              Height="{StaticResource StockPileHeight}">
-                                            <Border Margin="16,16,0,0"
-                                                    Background="#1EFFFFFF"
-                                                    BorderBrush="#2FFFFFFF"
-                                                    BorderThickness="1"
-                                                    CornerRadius="14" />
-                                            <Border Margin="8,8,0,0"
-                                                    Background="#2A1C3044"
-                                                    BorderBrush="#35FFFFFF"
-                                                    BorderThickness="1"
-                                                    CornerRadius="14" />
-                                            <Border Background="#FFF7FBFF"
-                                                    BorderBrush="#FF4F9DED"
-                                                    BorderThickness="1.4"
-                                                    CornerRadius="14"
-                                                    Effect="{StaticResource CardShadowEffect}">
-                                                <StackPanel VerticalAlignment="Center"
-                                                            HorizontalAlignment="Center">
-                                                    <TextBlock HorizontalAlignment="Center"
-                                                               FontSize="18"
-                                                               FontWeight="Bold"
-                                                               Foreground="#FF4F9DED"
-                                                               Text="Stock" />
-                                                    <TextBlock Margin="0,8,0,0"
-                                                               HorizontalAlignment="Center"
-                                                               FontSize="13"
-                                                               FontWeight="SemiBold"
-                                                               Foreground="#FF17212B"
-                                                               Text="{Binding TableOverview.StockCount, StringFormat={}{0} cards}" />
-                                                    <TextBlock Margin="0,6,0,0"
-                                                               HorizontalAlignment="Center"
-                                                               FontSize="10"
-                                                               Foreground="#8A17212B"
-                                                               Text="Face-down draw pile"
-                                                               TextWrapping="Wrap"
-                                                               TextAlignment="Center" />
-                                                </StackPanel>
-                                            </Border>
-                                        </Grid>
-                                    </StackPanel>
-
-                                    <StackPanel Grid.Column="2" HorizontalAlignment="Center">
-                                        <TextBlock Margin="0,0,0,8"
-                                                   FontSize="12"
-                                                   Foreground="{StaticResource MutedTextBrush}"
-                                                   Text="Discard pile" />
-                                        <ContentPresenter Content="{Binding DiscardPile.TopCardVisual}"
-                                                          ContentTemplate="{StaticResource DisplayCardTemplate}" />
-                                    </StackPanel>
+                                <Grid Width="{StaticResource StockPileWidth}"
+                                      Height="{StaticResource StockPileHeight}"
+                                      automation:AutomationProperties.Name="Stock pile"
+                                      automation:AutomationProperties.HelpText="Face-down draw pile.">
+                                    <Border Margin="16,16,0,0"
+                                            Background="#1EFFFFFF"
+                                            BorderBrush="#2FFFFFFF"
+                                            BorderThickness="1"
+                                            CornerRadius="14" />
+                                    <Border Margin="8,8,0,0"
+                                            Background="#2A1C3044"
+                                            BorderBrush="#35FFFFFF"
+                                            BorderThickness="1"
+                                            CornerRadius="14" />
+                                    <Border Background="#FFF7FBFF"
+                                            BorderBrush="#FF4F9DED"
+                                            BorderThickness="1.4"
+                                            CornerRadius="14"
+                                            Effect="{StaticResource CardShadowEffect}" />
                                 </Grid>
-                            </StackPanel>
+
+                                <ContentPresenter Grid.Column="2"
+                                                  Content="{Binding DiscardPile.TopCardVisual}"
+                                                  ContentTemplate="{StaticResource DisplayCardTemplate}"
+                                                  automation:AutomationProperties.Name="Discard pile" />
+                            </Grid>
 
                             <GroupBox Grid.Row="3"
                                       Grid.Column="0"
