@@ -1,4 +1,5 @@
 using CanastaNET.Desktop.Core;
+using CanastaNET.Engine;
 
 namespace CanastaNET.Engine.Tests;
 
@@ -10,7 +11,7 @@ public class DesktopWorkspaceViewModelTests
         var workspace = new CanastaWorkspaceViewModel();
 
         Assert.Equal(1, workspace.TableOverview.RoundNumber);
-        Assert.Equal("AwaitingDraw", workspace.TableOverview.TurnPhase);
+        Assert.Equal(TurnPhase.AwaitingDraw, workspace.TableOverview.TurnPhase);
         Assert.Equal(workspace.TableOverview.CurrentPlayerName, workspace.PlayerHands.Single(hand => hand.IsCurrentPlayer).Name);
         Assert.NotNull(workspace.CurrentPlayerHand);
         Assert.All(workspace.WaitingPlayerHands, hand => Assert.False(hand.IsCurrentPlayer));
@@ -56,7 +57,7 @@ public class DesktopWorkspaceViewModelTests
 
         workspace.DrawStockCommand.Execute(null);
 
-        Assert.Equal("AwaitingDiscard", workspace.TableOverview.TurnPhase);
+        Assert.Equal(TurnPhase.AwaitingDiscard, workspace.TableOverview.TurnPhase);
         Assert.Equal(handSizeBeforeDraw + 1, workspace.PlayerHands.Single(hand => hand.IsCurrentPlayer).Cards.Count);
         Assert.True(workspace.ShowSelectionPrompt);
         Assert.Equal("Select cards to reveal meld and discard actions.", workspace.NextActionPrompt);
@@ -71,7 +72,7 @@ public class DesktopWorkspaceViewModelTests
 
         workspace.EndTurnCommand.Execute(null);
 
-        Assert.Equal("AwaitingDraw", workspace.TableOverview.TurnPhase);
+        Assert.Equal(TurnPhase.AwaitingDraw, workspace.TableOverview.TurnPhase);
         Assert.NotEqual(activePlayerBeforeTurn, workspace.TableOverview.CurrentPlayerName);
         Assert.Contains("Ended the turn", workspace.FeedbackMessage!, StringComparison.OrdinalIgnoreCase);
     }

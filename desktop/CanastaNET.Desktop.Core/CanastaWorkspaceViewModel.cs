@@ -145,9 +145,9 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
         private set => SetProperty(ref nextActionPrompt, value);
     }
 
-    public bool IsAwaitingDraw => string.Equals(TableOverview.TurnPhase, nameof(TurnPhase.AwaitingDraw), StringComparison.Ordinal);
+    public bool IsAwaitingDraw => TableOverview.TurnPhase == TurnPhase.AwaitingDraw;
 
-    public bool IsAwaitingDiscard => string.Equals(TableOverview.TurnPhase, nameof(TurnPhase.AwaitingDiscard), StringComparison.Ordinal);
+    public bool IsAwaitingDiscard => TableOverview.TurnPhase == TurnPhase.AwaitingDiscard;
 
     public int SelectedCurrentPlayerCardCount => GetSelectedCurrentPlayerCardIds().Count;
 
@@ -501,7 +501,7 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
     private void RememberRecentMatch(string path, string actionDescription)
     {
         var fullPath = Path.GetFullPath(path);
-        var updated = new[] { RecentMatchEntryViewModel.Create(fullPath, actionDescription, TableOverview.RoundNumber, TableOverview.CurrentPlayerName, TableOverview.TurnPhase) }
+        var updated = new[] { RecentMatchEntryViewModel.Create(fullPath, actionDescription, TableOverview.RoundNumber, TableOverview.CurrentPlayerName, TableOverview.TurnPhase.ToString()) }
             .Concat(RecentMatches.Where(entry => !string.Equals(entry.Path, fullPath, StringComparison.OrdinalIgnoreCase)))
             .Take(MaxRecentMatchCount)
             .ToArray();
@@ -511,7 +511,7 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
         SelectedRecentMatchPath = fullPath;
     }
 
-    private static string CreateNextActionPrompt(string turnPhase, int legalCommandCount, int selectedCardCount)
+    private static string CreateNextActionPrompt(TurnPhase turnPhase, int legalCommandCount, int selectedCardCount)
     {
         if (legalCommandCount == 0)
         {
@@ -520,11 +520,11 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
 
         return turnPhase switch
         {
-            nameof(TurnPhase.AwaitingDraw) => "Draw from the stock or discard pile to start the turn.",
-            nameof(TurnPhase.AwaitingDiscard) when selectedCardCount == 0 => "Select cards to reveal meld and discard actions.",
-            nameof(TurnPhase.AwaitingDiscard) when selectedCardCount == 1 => "Discard the selected card or meld it if the play is legal.",
-            nameof(TurnPhase.AwaitingDiscard) => "Meld the selected cards or keep one card selected to discard.",
-            nameof(TurnPhase.Completed) => "The round is complete. Review the summary and start the next round when the table is ready.",
+            TurnPhase.AwaitingDraw => "Draw from the stock or discard pile to start the turn.",
+            TurnPhase.AwaitingDiscard when selectedCardCount == 0 => "Select cards to reveal meld and discard actions.",
+            TurnPhase.AwaitingDiscard when selectedCardCount == 1 => "Discard the selected card or meld it if the play is legal.",
+            TurnPhase.AwaitingDiscard => "Meld the selected cards or keep one card selected to discard.",
+            TurnPhase.Completed => "The round is complete. Review the summary and start the next round when the table is ready.",
             _ => "Review the current table state to choose the next move."
         };
     }
@@ -643,7 +643,7 @@ public sealed class TableOverviewViewModel
         currentPlayerName: string.Empty,
         currentPlayerIndex: 0,
         currentPlayerTeamIndex: 0,
-        turnPhase: string.Empty,
+        turnPhase: TurnPhase.AwaitingDraw,
         completedTurns: 0,
         stockCount: 0,
         discardTopCard: "(empty)",
@@ -657,7 +657,7 @@ public sealed class TableOverviewViewModel
         string currentPlayerName,
         int currentPlayerIndex,
         int currentPlayerTeamIndex,
-        string turnPhase,
+        TurnPhase turnPhase,
         int completedTurns,
         int stockCount,
         string discardTopCard,
@@ -688,7 +688,7 @@ public sealed class TableOverviewViewModel
 
     public int CurrentPlayerTeamIndex { get; }
 
-    public string TurnPhase { get; }
+    public TurnPhase TurnPhase { get; }
 
     public int CompletedTurns { get; }
 
@@ -714,7 +714,7 @@ public sealed class TableOverviewViewModel
             currentPlayer.Name,
             currentPlayer.PlayerIndex,
             currentPlayer.TeamIndex,
-            round.TurnPhase.ToString(),
+            round.TurnPhase,
             round.CompletedTurnCount,
             round.StockPile.Count,
             round.DiscardPile.Count == 0 ? "(empty)" : CardFormatter.Format(round.DiscardPile[^1]),
