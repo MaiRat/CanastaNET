@@ -71,12 +71,17 @@
             <Setter Property="Padding" Value="12" />
             <Setter Property="Background" Value="#18243447" />
             <Setter Property="BorderBrush" Value="#28FFFFFF" />
-            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderThickness" Value="0" />
             <Setter Property="CornerRadius" Value="18" />
         </Style>
 
         <Style x:Key="OverlappedHorizontalHandItemStyle" TargetType="ContentPresenter">
             <Setter Property="Margin" Value="{StaticResource DefaultHorizontalHandOverlapMargin}" />
+            <Setter Property="LayoutTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="0.94" ScaleY="0.94" />
+                </Setter.Value>
+            </Setter>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding DataContext.UseCompactCardSpacing, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
                     <Setter Property="Margin" Value="{StaticResource CompactHorizontalHandOverlapMargin}" />
@@ -86,6 +91,11 @@
 
         <Style x:Key="OverlappedVerticalHandItemStyle" TargetType="ContentPresenter">
             <Setter Property="Margin" Value="{StaticResource DefaultVerticalHandOverlapMargin}" />
+            <Setter Property="LayoutTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="0.92" ScaleY="0.92" />
+                </Setter.Value>
+            </Setter>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding DataContext.UseCompactCardSpacing, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
                     <Setter Property="Margin" Value="{StaticResource CompactVerticalHandOverlapMargin}" />
@@ -421,7 +431,8 @@
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Row="1"
+                <Border Grid.Row="0"
+                        Grid.RowSpan="3"
                         Grid.Column="0">
                     <Border.Style>
                         <Style BasedOn="{StaticResource SeatPanelStyle}" TargetType="Border">
@@ -471,7 +482,7 @@
                         Padding="18"
                         Background="#1A17212B"
                         BorderBrush="#33FFFFFF"
-                        BorderThickness="1"
+                        BorderThickness="0"
                         CornerRadius="24"
                         Style="{StaticResource FadeInBorderStyle}">
                     <ScrollViewer VerticalScrollBarVisibility="Auto"
@@ -775,7 +786,8 @@
                     </ScrollViewer>
                 </Border>
 
-                <Border Grid.Row="1"
+                <Border Grid.Row="0"
+                        Grid.RowSpan="3"
                         Grid.Column="4">
                     <Border.Style>
                         <Style BasedOn="{StaticResource SeatPanelStyle}" TargetType="Border">
