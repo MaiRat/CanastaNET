@@ -584,26 +584,32 @@
                                         <Grid>
                                             <Border Margin="20"
                                                     Background="#154F9DED"
-                                                    CornerRadius="10" />
+                                                    CornerRadius="10"
+                                                    automation:AutomationProperties.Name="" />
                                             <UniformGrid Rows="2"
                                                          Columns="2"
+                                                         automation:AutomationProperties.Name=""
                                                          HorizontalAlignment="Center"
                                                          VerticalAlignment="Center">
                                                 <TextBlock Margin="0,0,6,6"
                                                            FontSize="18"
                                                            Foreground="#A64F9DED"
+                                                           automation:AutomationProperties.Name=""
                                                            Text="♠" />
                                                 <TextBlock Margin="6,0,0,6"
                                                            FontSize="18"
                                                            Foreground="#A64F9DED"
+                                                           automation:AutomationProperties.Name=""
                                                            Text="♥" />
                                                 <TextBlock Margin="0,6,6,0"
                                                            FontSize="18"
                                                            Foreground="#A64F9DED"
+                                                           automation:AutomationProperties.Name=""
                                                            Text="♣" />
                                                 <TextBlock Margin="6,6,0,0"
                                                            FontSize="18"
                                                            Foreground="#A64F9DED"
+                                                           automation:AutomationProperties.Name=""
                                                            Text="♦" />
                                             </UniformGrid>
                                         </Grid>
