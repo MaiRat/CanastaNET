@@ -223,6 +223,8 @@ public class DesktopWorkspaceViewModelTests
     public void PlayerHands_AllowSelectingCardsForEverySeat_WithoutChangingCurrentTurnSelectionCount()
     {
         var workspace = new CanastaWorkspaceViewModel();
+        Assert.NotEmpty(workspace.WaitingPlayerHands);
+        Assert.NotEmpty(workspace.WaitingPlayerHands.First().Cards);
         var waitingCard = workspace.WaitingPlayerHands.First().Cards.First();
 
         Assert.All(workspace.PlayerHands, hand => Assert.All(hand.Cards, card => Assert.True(card.CanSelect)));
