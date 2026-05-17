@@ -90,23 +90,23 @@ CanastaNET is a .NET/C# Canasta project with a Canasta game engine. The reposito
 
 ### Desktop UX notes
 
-- The WPF shell now includes richer `File`, `Navigate`, `Settings`, and `Help` menus for quicker table navigation and card-view adjustments.
-- Playing cards are rendered with dependency-free WPF templates (suit glyphs, accent colors, point badges, deck ribbons, and compact-spacing settings).
+- The WPF shell now keeps the entire desktop focused on a single felt-table layout, with the four players arranged around the table and no tabbed navigation.
+- Playing cards are rendered with dependency-free WPF templates (suit glyphs, accent colors, point badges, deck ribbons, and a smaller default footprint for tighter table layouts).
 - No additional third-party/NuGet UI package was added for the card refresh because modern maintained WPF playing-card-specific packages are limited; the upgraded artwork stays within the existing project dependencies.
 
 ### Manual verification checklist
 
 On a Windows machine, launch the desktop app and verify:
 
-- the top menu supports file actions, tab navigation, and card-view settings without disrupting the active match
-- the desktop opens focused on the player-hands tab, with a concise legal-next-action prompt instead of always-on descriptive copy
-- the left rail keeps setup and snapshot controls tucked into collapsed sections until they are needed
-- the setup panel can start a seeded match with custom players and scoring options
+- the top menu supports file, match preset, settings, and help actions without introducing any persistent side panels or tabs
+- the desktop opens directly onto the single table surface, with the active hand at the bottom and the other players arranged on the top, left, and right edges when present
+- the table keeps a concise legal-next-action prompt and current feedback visible without pulling focus away from the play area
+- match presets, snapshot actions, and card-view settings remain reachable from the menu while the table stays fully visible
 - Ctrl+N / Ctrl+S / Ctrl+O / Ctrl+D trigger the expected start, save, load, and draw workflows
-- the snapshot panel can save the current match, load it again, and populate recent-match history entries
-- the table overview tab reflects the current player, turn phase, stock count, discard top card, and legal commands
-- the player hands tab highlights the active hand with the upgraded playing-card visuals and only reveals round-action buttons when they are contextually needed
-- the melds and discard pile tabs show the upgraded playing-card visuals and stay synchronized after each action
+- the snapshot menu actions can save the current match, load it again, and populate recent-match history entries
+- the central table area reflects the current player, turn phase, stock count, discard top card, team melds, and legal commands without any tab switching
+- the active hand uses the upgraded playing-card visuals and only reveals round-action buttons when they are contextually needed
+- the surrounding player seats, melds, and discard spotlight stay synchronized after each action
 - the Settings menu toggles point badges, deck ribbons, and compact card spacing across hands, melds, and discard views
-- the rules help tab provides onboarding reminders for draw, meld, discard, and snapshot workflows
+- the Help menu opens the quick rules reminders for draw, meld, discard, and snapshot workflows
 - invalid actions show validation feedback from the engine, and `Next round` becomes available after a completed round

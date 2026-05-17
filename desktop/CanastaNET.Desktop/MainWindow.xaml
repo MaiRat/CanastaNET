@@ -38,26 +38,34 @@
         </Style>
 
         <DropShadowEffect x:Key="CardShadowEffect"
-                          BlurRadius="16"
-                          ShadowDepth="5"
+                          BlurRadius="12"
+                          ShadowDepth="4"
                           Direction="265"
-                          Opacity="0.28"
+                          Opacity="0.22"
                           Color="#B0000000" />
 
         <Style x:Key="CardShellStyle" TargetType="Border">
-            <Setter Property="Width" Value="148" />
-            <Setter Property="Margin" Value="0,0,14,14" />
+            <Setter Property="Width" Value="124" />
+            <Setter Property="Margin" Value="0,0,10,10" />
             <Setter Property="Padding" Value="0" />
-            <Setter Property="CornerRadius" Value="14" />
-            <Setter Property="BorderThickness" Value="1.6" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="BorderThickness" Value="1.4" />
             <Setter Property="Effect" Value="{StaticResource CardShadowEffect}" />
             <Setter Property="SnapsToDevicePixels" Value="True" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding DataContext.UseCompactCardSpacing, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                    <Setter Property="Width" Value="134" />
-                    <Setter Property="Margin" Value="0,0,10,10" />
+                    <Setter Property="Width" Value="110" />
+                    <Setter Property="Margin" Value="0,0,8,8" />
                 </DataTrigger>
             </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SeatPanelStyle" TargetType="Border">
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="Background" Value="#18243447" />
+            <Setter Property="BorderBrush" Value="#28FFFFFF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="18" />
         </Style>
 
         <DataTemplate x:Key="DisplayCardTemplate">
@@ -66,12 +74,12 @@
                     Style="{StaticResource CardShellStyle}">
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="8" />
+                        <RowDefinition Height="6" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <Border Background="{Binding AccentColor}"
-                            CornerRadius="12,12,0,0" />
-                    <Grid Grid.Row="1" Margin="12">
+                            CornerRadius="10,10,0,0" />
+                    <Grid Grid.Row="1" Margin="10">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
@@ -80,19 +88,19 @@
 
                         <Grid>
                             <StackPanel>
-                                <TextBlock FontSize="24"
+                                <TextBlock FontSize="20"
                                            FontWeight="Bold"
                                            Foreground="{Binding AccentColor}"
                                            Text="{Binding RankText}" />
                                 <TextBlock Margin="0,-4,0,0"
-                                           FontSize="20"
+                                           FontSize="16"
                                            Foreground="{Binding AccentColor}"
                                            Text="{Binding SuitSymbol}" />
                             </StackPanel>
                             <Border HorizontalAlignment="Right"
-                                    Padding="8,3"
+                                    Padding="7,2"
                                     Background="{Binding AccentColor}"
-                                    CornerRadius="10">
+                                    CornerRadius="8">
                                 <Border.Style>
                                     <Style TargetType="Border">
                                         <Setter Property="Visibility" Value="Visible" />
@@ -103,7 +111,7 @@
                                         </Style.Triggers>
                                     </Style>
                                 </Border.Style>
-                                <TextBlock FontSize="11"
+                                <TextBlock FontSize="10"
                                            FontWeight="SemiBold"
                                            Foreground="White"
                                            Text="{Binding PointBadgeText}" />
@@ -113,37 +121,37 @@
                         <StackPanel Grid.Row="1"
                                     VerticalAlignment="Center"
                                     HorizontalAlignment="Center">
-                            <Border Padding="10,4"
-                                    Margin="0,8,0,12"
+                            <Border Padding="9,4"
+                                    Margin="0,6,0,10"
                                     Background="#12000000"
-                                    CornerRadius="9">
-                                <TextBlock FontSize="12"
+                                    CornerRadius="8">
+                                <TextBlock FontSize="11"
                                            FontWeight="SemiBold"
                                            Foreground="{Binding AccentColor}"
                                            Text="{Binding CardTypeLabel}" />
                             </Border>
                             <TextBlock HorizontalAlignment="Center"
-                                       FontSize="52"
+                                       FontSize="40"
                                        Foreground="{Binding AccentColor}"
                                        Text="{Binding SuitSymbol}" />
-                            <TextBlock Margin="0,8,0,0"
+                            <TextBlock Margin="0,6,0,0"
                                        HorizontalAlignment="Center"
-                                       FontSize="14"
+                                       FontSize="12"
                                        Foreground="#7A17212B"
                                        Text="{Binding SuitText}" />
                         </StackPanel>
 
                         <Grid Grid.Row="2">
                             <TextBlock VerticalAlignment="Bottom"
-                                       FontSize="11"
+                                       FontSize="10"
                                        Foreground="#9917212B"
                                        Text="{Binding DisplayText}"
                                        TextWrapping="Wrap" />
                             <Border HorizontalAlignment="Right"
                                     VerticalAlignment="Bottom"
-                                    Padding="8,3"
+                                    Padding="7,2"
                                     Background="#1217212B"
-                                    CornerRadius="9">
+                                    CornerRadius="8">
                                 <Border.Style>
                                     <Style TargetType="Border">
                                         <Setter Property="Visibility" Value="Visible" />
@@ -154,7 +162,7 @@
                                         </Style.Triggers>
                                     </Style>
                                 </Border.Style>
-                                <TextBlock FontSize="10"
+                                <TextBlock FontSize="9"
                                            FontWeight="SemiBold"
                                            Foreground="#CC17212B"
                                            Text="{Binding DeckLabel}" />
@@ -182,12 +190,12 @@
                 </Border.Style>
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="8" />
+                        <RowDefinition Height="6" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <Border Background="{Binding AccentColor}"
-                            CornerRadius="12,12,0,0" />
-                    <Grid Grid.Row="1" Margin="12">
+                            CornerRadius="10,10,0,0" />
+                    <Grid Grid.Row="1" Margin="10">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
@@ -196,19 +204,19 @@
 
                         <Grid>
                             <StackPanel>
-                                <TextBlock FontSize="24"
+                                <TextBlock FontSize="20"
                                            FontWeight="Bold"
                                            Foreground="{Binding AccentColor}"
                                            Text="{Binding RankText}" />
                                 <TextBlock Margin="0,-4,0,0"
-                                           FontSize="20"
+                                           FontSize="16"
                                            Foreground="{Binding AccentColor}"
                                            Text="{Binding SuitSymbol}" />
                             </StackPanel>
                             <Border HorizontalAlignment="Right"
-                                    Padding="8,3"
+                                    Padding="7,2"
                                     Background="{Binding AccentColor}"
-                                    CornerRadius="10">
+                                    CornerRadius="8">
                                 <Border.Style>
                                     <Style TargetType="Border">
                                         <Setter Property="Visibility" Value="Visible" />
@@ -219,7 +227,7 @@
                                         </Style.Triggers>
                                     </Style>
                                 </Border.Style>
-                                <TextBlock FontSize="11"
+                                <TextBlock FontSize="10"
                                            FontWeight="SemiBold"
                                            Foreground="White"
                                            Text="{Binding PointValue, StringFormat={}{0} pts}" />
@@ -229,18 +237,18 @@
                         <StackPanel Grid.Row="1"
                                     VerticalAlignment="Center"
                                     HorizontalAlignment="Center">
-                            <CheckBox Margin="0,0,0,10"
+                            <CheckBox Margin="0,0,0,8"
                                       HorizontalAlignment="Center"
                                       Content="Ready"
                                       IsChecked="{Binding IsSelected, Mode=TwoWay}"
                                       IsEnabled="{Binding CanSelect}" />
                             <TextBlock HorizontalAlignment="Center"
-                                       FontSize="52"
+                                       FontSize="40"
                                        Foreground="{Binding AccentColor}"
                                        Text="{Binding SuitSymbol}" />
-                            <TextBlock Margin="0,8,0,0"
+                            <TextBlock Margin="0,6,0,0"
                                        HorizontalAlignment="Center"
-                                       FontSize="12"
+                                       FontSize="11"
                                        FontWeight="SemiBold"
                                        Foreground="{Binding AccentColor}"
                                        Text="{Binding CardTypeLabel}" />
@@ -248,15 +256,15 @@
 
                         <Grid Grid.Row="2">
                             <TextBlock VerticalAlignment="Bottom"
-                                       FontSize="11"
+                                       FontSize="10"
                                        Foreground="#9917212B"
                                        Text="{Binding DisplayText}"
                                        TextWrapping="Wrap" />
                             <Border HorizontalAlignment="Right"
                                     VerticalAlignment="Bottom"
-                                    Padding="8,3"
+                                    Padding="7,2"
                                     Background="#1217212B"
-                                    CornerRadius="9">
+                                    CornerRadius="8">
                                 <Border.Style>
                                     <Style TargetType="Border">
                                         <Setter Property="Visibility" Value="Visible" />
@@ -267,7 +275,7 @@
                                         </Style.Triggers>
                                     </Style>
                                 </Border.Style>
-                                <TextBlock FontSize="10"
+                                <TextBlock FontSize="9"
                                            FontWeight="SemiBold"
                                            Foreground="#CC17212B"
                                            Text="{Binding DeckLabel}" />
@@ -285,18 +293,25 @@
               Foreground="{StaticResource PrimaryTextBrush}">
             <MenuItem Header="_File">
                 <MenuItem Header="_New match" Command="{Binding StartMatchCommand}" InputGestureText="Ctrl+N" />
+                <Separator />
                 <MenuItem Header="_Save snapshot" Command="{Binding SaveMatchCommand}" InputGestureText="Ctrl+S" />
                 <MenuItem Header="_Load snapshot" Command="{Binding LoadMatchCommand}" InputGestureText="Ctrl+O" />
-                <Separator />
                 <MenuItem Header="Load _recent snapshot" Command="{Binding LoadRecentMatchCommand}" />
             </MenuItem>
-            <MenuItem Header="_Navigate">
-                <MenuItem Header="_Table overview" Tag="0" Click="NavigateToTab_Click" />
-                <MenuItem Header="_Player hands" Tag="1" Click="NavigateToTab_Click" />
-                <MenuItem Header="_Melds" Tag="2" Click="NavigateToTab_Click" />
-                <MenuItem Header="_Discard pile" Tag="3" Click="NavigateToTab_Click" />
-                <MenuItem Header="_Score summary" Tag="4" Click="NavigateToTab_Click" />
-                <MenuItem Header="_Rules help" Tag="5" Click="NavigateToTab_Click" />
+            <MenuItem Header="_Match">
+                <MenuItem Header="Start _classic four-player table"
+                          Tag="Classic 4-player table"
+                          Click="StartPreset_Click" />
+                <MenuItem Header="Start _quick duo practice"
+                          Tag="Quick duo practice"
+                          Click="StartPreset_Click" />
+                <MenuItem Header="Start _long match rematch"
+                          Tag="Long match rematch"
+                          Click="StartPreset_Click" />
+                <Separator />
+                <MenuItem Header="_Next round"
+                          Command="{Binding NextRoundCommand}"
+                          Visibility="{Binding ShowNextRoundAction, Converter={StaticResource BooleanToVisibilityConverter}}" />
             </MenuItem>
             <MenuItem Header="_Settings">
                 <MenuItem Header="Show point _badges"
@@ -310,7 +325,8 @@
                           IsChecked="{Binding UseCompactCardSpacing, Mode=TwoWay}" />
             </MenuItem>
             <MenuItem Header="_Help">
-                <MenuItem Header="Open _rules help" Tag="5" Click="NavigateToTab_Click" />
+                <MenuItem Header="Open _quick rules help"
+                          Click="ShowRulesHelp_Click" />
                 <Separator />
                 <MenuItem Header="Ctrl+N new match" IsEnabled="False" />
                 <MenuItem Header="Ctrl+S save snapshot" IsEnabled="False" />
@@ -319,287 +335,281 @@
             </MenuItem>
         </Menu>
 
-        <Border DockPanel.Dock="Top"
-                Margin="16,16,16,0"
-                Padding="16,14"
-                Background="#1AFFFFFF"
-                BorderBrush="#1FFFFFFF"
-                BorderThickness="1"
-                CornerRadius="18">
-            <Grid>
+        <Grid Margin="16">
+            <Border Background="#FF1F5B47"
+                    BorderBrush="#4CFFFFFF"
+                    BorderThickness="1"
+                    CornerRadius="32" />
+
+            <Grid Margin="16">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="240" />
+                    <ColumnDefinition Width="20" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="240" />
                 </Grid.ColumnDefinitions>
-                <StackPanel>
-                    <TextBlock FontSize="26"
-                               FontWeight="SemiBold"
-                               Text="CanastaNET" />
-                </StackPanel>
-                <StackPanel Grid.Column="1" Margin="18,0,0,0">
-                    <TextBlock FontSize="20"
-                               FontWeight="SemiBold"
-                               Text="{Binding TableOverview.CurrentPlayerName}" />
-                    <TextBlock Margin="0,4,0,0"
-                               Foreground="{StaticResource MutedTextBrush}"
-                               Text="{Binding TableOverview.TurnPhaseLabel}" />
-                </StackPanel>
-                <Border Grid.Column="2"
-                        Margin="18,0,0,0"
-                        Padding="14"
-                        Background="#1F4F9DED"
-                        CornerRadius="14"
-                        Style="{StaticResource FadeInBorderStyle}"
-                        Visibility="{Binding ShowNextActionPrompt, Converter={StaticResource BooleanToVisibilityConverter}}">
+
+                <Border Grid.Row="0"
+                        Grid.Column="2"
+                        Margin="0,0,0,16">
+                    <Border.Style>
+                        <Style BasedOn="{StaticResource SeatPanelStyle}" TargetType="Border">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding TopSeatHand}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
                     <StackPanel>
-                        <TextBlock Text="{Binding NextActionPrompt}"
-                                   automation:AutomationProperties.Name="Next action prompt"
-                                   TextWrapping="Wrap"
-                                   automation:AutomationProperties.HelpText="Suggested next legal action for the current table state." />
+                        <DockPanel>
+                            <TextBlock FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Text="{Binding TopSeatHand.Name}" />
+                            <TextBlock DockPanel.Dock="Right"
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       Text="{Binding TopSeatHand.CardCount, StringFormat={}{0} cards}" />
+                        </DockPanel>
+                        <ScrollViewer Margin="0,10,0,0"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      VerticalScrollBarVisibility="Disabled">
+                            <ItemsControl ItemsSource="{Binding TopSeatHand.Cards}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel HorizontalAlignment="Center" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <StaticResource ResourceKey="DisplayCardTemplate" />
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
                     </StackPanel>
                 </Border>
-            </Grid>
-        </Border>
 
-        <Grid Margin="16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="300" />
-                <ColumnDefinition Width="18" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel>
-                    <Border Padding="14"
-                            Margin="0,0,0,14"
-                            Background="{StaticResource SuccessBrush}"
-                            CornerRadius="12"
-                            Style="{StaticResource FadeInBorderStyle}">
-                        <TextBlock Text="{Binding FeedbackMessage, TargetNullValue=Ready for manual play validation.}"
-                                   TextWrapping="Wrap"
-                                   automation:AutomationProperties.HelpText="Latest feedback from the workspace." />
-                    </Border>
-
-                    <GroupBox Header="Round actions"
-                              Visibility="{Binding ShowRoundActions, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <WrapPanel>
-                            <Button Command="{Binding DrawStockCommand}"
-                                    Content="_Draw stock"
-                                    Visibility="{Binding ShowDrawActions, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                    automation:AutomationProperties.Name="Draw from the stock pile" />
-                            <Button Command="{Binding DrawDiscardCommand}"
-                                    Content="Draw _discard"
-                                    Visibility="{Binding ShowDrawActions, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                    automation:AutomationProperties.Name="Draw from the discard pile" />
-                            <Button Command="{Binding MeldCommand}"
-                                    Content="_Meld selected"
-                                    Visibility="{Binding ShowMeldAction, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                    automation:AutomationProperties.Name="Meld the selected cards" />
-                            <Button Command="{Binding DiscardCommand}"
-                                    Content="D_iscard selected"
-                                    Visibility="{Binding ShowDiscardActions, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                    automation:AutomationProperties.Name="Discard the selected card" />
-                            <Button Command="{Binding EndTurnCommand}"
-                                    Content="_End turn"
-                                    Visibility="{Binding ShowDiscardActions, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                    automation:AutomationProperties.Name="End the turn by discarding the selected card" />
-                            <Button Command="{Binding NextRoundCommand}"
-                                    Content="_Next round"
-                                    Visibility="{Binding ShowNextRoundAction, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                    automation:AutomationProperties.Name="Start the next round" />
-                        </WrapPanel>
-                    </GroupBox>
-
-                    <Expander Header="Match setup"
-                              IsExpanded="False"
-                              automation:AutomationProperties.Name="Match setup section">
-                        <StackPanel>
-                            <ComboBox Margin="0,10,0,8"
-                                      ItemsSource="{Binding SetupPresets}"
-                                      DisplayMemberPath="Name"
-                                      SelectedValuePath="Name"
-                                      SelectedValue="{Binding SelectedSetupPresetName, UpdateSourceTrigger=PropertyChanged}"
-                                      automation:AutomationProperties.Name="Setup preset selector" />
-                            <Button Margin="0,0,0,12"
-                                    Command="{Binding ApplySetupPresetCommand}"
-                                    Content="_Apply preset"
-                                    automation:AutomationProperties.Name="Apply selected setup preset" />
-                            <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Players" />
-                            <TextBox Text="{Binding Setup.PlayerNamesCsv, UpdateSourceTrigger=PropertyChanged}"
-                                     automation:AutomationProperties.Name="Player names" />
-
-                            <UniformGrid Columns="2" Margin="0,4,0,0">
-                                <StackPanel Margin="0,0,8,0">
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Teams" />
-                                    <TextBox Text="{Binding Setup.TeamCount, UpdateSourceTrigger=PropertyChanged}"
-                                             automation:AutomationProperties.Name="Team count" />
-                                </StackPanel>
-                                <StackPanel>
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Dealer" />
-                                    <TextBox Text="{Binding Setup.DealerIndex, UpdateSourceTrigger=PropertyChanged}"
-                                             automation:AutomationProperties.Name="Dealer index" />
-                                </StackPanel>
-                            </UniformGrid>
-
-                            <UniformGrid Columns="2">
-                                <StackPanel Margin="0,0,8,0">
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Decks" />
-                                    <TextBox Text="{Binding Setup.DeckCount, UpdateSourceTrigger=PropertyChanged}"
-                                             automation:AutomationProperties.Name="Deck count" />
-                                </StackPanel>
-                                <StackPanel>
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Cards" />
-                                    <TextBox Text="{Binding Setup.CardsPerPlayer, UpdateSourceTrigger=PropertyChanged}"
-                                             automation:AutomationProperties.Name="Cards per player" />
-                                </StackPanel>
-                            </UniformGrid>
-
-                            <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Winning score" />
-                            <TextBox Text="{Binding Setup.WinningScore, UpdateSourceTrigger=PropertyChanged}"
-                                     automation:AutomationProperties.Name="Winning score" />
-
-                            <UniformGrid Columns="2">
-                                <StackPanel Margin="0,0,8,0">
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Seed" />
-                                    <TextBox Text="{Binding Setup.SeedText, UpdateSourceTrigger=PropertyChanged}"
-                                             automation:AutomationProperties.Name="Opening seed" />
-                                </StackPanel>
-                                <StackPanel>
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Next" />
-                                    <TextBox Text="{Binding Setup.NextRoundSeedText, UpdateSourceTrigger=PropertyChanged}"
-                                             automation:AutomationProperties.Name="Next round seed" />
-                                </StackPanel>
-                            </UniformGrid>
-
-                            <Button Command="{Binding StartMatchCommand}"
-                                    Content="_Start match"
-                                    automation:AutomationProperties.Name="Start a new match" />
+                <Border Grid.Row="1"
+                        Grid.Column="0">
+                    <Border.Style>
+                        <Style BasedOn="{StaticResource SeatPanelStyle}" TargetType="Border">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding LeftSeatHand}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <DockPanel LastChildFill="True">
+                        <StackPanel DockPanel.Dock="Top">
+                            <TextBlock FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Text="{Binding LeftSeatHand.Name}" />
+                            <TextBlock Margin="0,4,0,0"
+                                       Foreground="{StaticResource MutedTextBrush}"
+                                       Text="{Binding LeftSeatHand.CardCount, StringFormat={}{0} cards}" />
                         </StackPanel>
-                    </Expander>
+                        <ScrollViewer Margin="0,12,0,0"
+                                      VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl ItemsSource="{Binding LeftSeatHand.Cards}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <StaticResource ResourceKey="DisplayCardTemplate" />
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
 
-                    <Expander Header="Snapshots"
-                              IsExpanded="False"
-                              automation:AutomationProperties.Name="Snapshots section">
-                        <StackPanel>
-                            <ComboBox Margin="0,0,0,10"
-                                      ItemsSource="{Binding AvailableMeldRanks}"
-                                      SelectedItem="{Binding SelectedMeldRankName, UpdateSourceTrigger=PropertyChanged}"
-                                      automation:AutomationProperties.Name="Meld rank selector"
-                                      Visibility="{Binding ShowMeldAction, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                            <TextBox Text="{Binding MatchFilePath, UpdateSourceTrigger=PropertyChanged}"
-                                     automation:AutomationProperties.Name="Match snapshot path" />
-                            <WrapPanel>
-                                <Button Command="{Binding SaveMatchCommand}"
-                                        Content="_Save match"
-                                        automation:AutomationProperties.Name="Save the current match snapshot" />
-                                <Button Command="{Binding LoadMatchCommand}"
-                                        Content="_Load match"
-                                        automation:AutomationProperties.Name="Load a match snapshot from disk" />
-                            </WrapPanel>
-                            <ComboBox Margin="0,10,0,8"
-                                      ItemsSource="{Binding RecentMatches}"
-                                      DisplayMemberPath="DisplayText"
-                                      SelectedValuePath="Path"
-                                      SelectedValue="{Binding SelectedRecentMatchPath, UpdateSourceTrigger=PropertyChanged}"
-                                      automation:AutomationProperties.Name="Recent match history" />
-                            <Button Command="{Binding LoadRecentMatchCommand}"
-                                    Content="Load _recent match"
-                                    automation:AutomationProperties.Name="Load selected recent match" />
-                        </StackPanel>
-                    </Expander>
-                </StackPanel>
-            </ScrollViewer>
-
-            <TabControl x:Name="WorkspaceTabs"
+                <Border Grid.Row="1"
                         Grid.Column="2"
-                        SelectedIndex="1"
-                        Background="#162434"
-                        BorderThickness="0">
-                <TabItem Header="Table overview">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <StackPanel Margin="18">
-                            <Grid Margin="0,0,0,16">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="1.8*" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <Border Padding="18"
-                                        Margin="0,0,16,0"
-                                        Background="#112F5D50"
-                                        BorderBrush="#334F9DED"
-                                        BorderThickness="1"
-                                        CornerRadius="18">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="1.2*" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel>
-                                            <TextBlock FontSize="24" FontWeight="SemiBold" Text="Round overview" />
-                                            <TextBlock Margin="0,6,0,0"
-                                                       Foreground="{StaticResource MutedTextBrush}"
-                                                       Text="A quick read on the active table, tuned for faster navigation between hands, melds, and discard flow."
-                                                       TextWrapping="Wrap" />
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="1" Margin="18,0,0,0">
-                                            <TextBlock Text="{Binding TableOverview.RoundNumber, StringFormat=Round {0}}" />
-                                            <TextBlock Text="{Binding TableOverview.CurrentPlayerName, StringFormat=Current player: {0}}" />
-                                            <TextBlock Text="{Binding TableOverview.CompletedTurns, StringFormat=Completed turns: {0}}" />
-                                            <TextBlock Text="{Binding TableOverview.CurrentTurnMeldPoints, StringFormat=Meld points this turn: {0}}" />
-                                        </StackPanel>
-                                        <StackPanel Grid.Column="2" Margin="18,0,0,0">
-                                            <TextBlock Text="{Binding TableOverview.StockCount, StringFormat=Stock: {0} cards}" />
-                                            <TextBlock Text="{Binding DiscardPile.IsFrozen, StringFormat=Discard frozen: {0}}" />
-                                            <TextBlock Text="{Binding TableOverview.ShuffleSeed, StringFormat=Shuffle seed: {0}}" />
-                                            <TextBlock Text="{Binding TableOverview.DiscardTopCard, StringFormat=Discard top: {0}}" TextWrapping="Wrap" />
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
-                                <Border Grid.Column="1"
-                                        Padding="18"
-                                        Background="#15FFFFFF"
-                                        BorderBrush="#1FFFFFFF"
-                                        BorderThickness="1"
-                                        CornerRadius="18">
-                                    <StackPanel>
-                                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="Discard spotlight" />
-                                        <TextBlock Margin="0,6,0,12"
-                                                   Foreground="{StaticResource MutedTextBrush}"
-                                                   Text="The top discard now uses the same card artwork as hands and melds for instant recognition."
-                                                   TextWrapping="Wrap" />
-                                        <ContentPresenter Content="{Binding DiscardPile.TopCardVisual}"
-                                                          ContentTemplate="{StaticResource DisplayCardTemplate}" />
-                                    </StackPanel>
-                                </Border>
-                            </Grid>
+                        Padding="18"
+                        Background="#1A17212B"
+                        BorderBrush="#33FFFFFF"
+                        BorderThickness="1"
+                        CornerRadius="24"
+                        Style="{StaticResource FadeInBorderStyle}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.1*" />
+                                <ColumnDefinition Width="0.9*" />
+                            </Grid.ColumnDefinitions>
 
-                            <Grid>
+                            <Border Grid.Row="0"
+                                    Grid.ColumnSpan="2"
+                                    Padding="16"
+                                    Background="#1AFFFFFF"
+                                    BorderBrush="#1FFFFFFF"
+                                    BorderThickness="1"
+                                    CornerRadius="18">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock FontSize="26"
+                                                   FontWeight="SemiBold"
+                                                   Text="CanastaNET table" />
+                                        <TextBlock Margin="0,6,0,0"
+                                                   Foreground="{StaticResource MutedTextBrush}"
+                                                   Text="{Binding TableOverview.RoundNumber, StringFormat=Round {0}}" />
+                                        <TextBlock Foreground="{StaticResource MutedTextBrush}"
+                                                   Text="{Binding TableOverview.CurrentPlayerName, StringFormat=Current player: {0}}" />
+                                        <TextBlock Foreground="{StaticResource MutedTextBrush}"
+                                                   Text="{Binding TableOverview.TurnPhaseLabel}" />
+                                    </StackPanel>
+                                    <Border Grid.Column="1"
+                                            Margin="18,0,0,0"
+                                            Padding="14"
+                                            Background="#1F4F9DED"
+                                            CornerRadius="14"
+                                            Visibility="{Binding ShowNextActionPrompt, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                        <TextBlock Width="280"
+                                                   Text="{Binding NextActionPrompt}"
+                                                   TextWrapping="Wrap"
+                                                   automation:AutomationProperties.Name="Next action prompt"
+                                                   automation:AutomationProperties.HelpText="Suggested next legal action for the current table state." />
+                                    </Border>
+                                </Grid>
+                            </Border>
+
+                            <Border Grid.Row="1"
+                                    Grid.ColumnSpan="2"
+                                    Margin="0,14,0,0"
+                                    Padding="14"
+                                    Background="{StaticResource SuccessBrush}"
+                                    CornerRadius="14"
+                                    Style="{StaticResource FadeInBorderStyle}">
+                                <TextBlock Text="{Binding FeedbackMessage, TargetNullValue=Ready for manual play validation.}"
+                                           TextWrapping="Wrap"
+                                           automation:AutomationProperties.HelpText="Latest feedback from the workspace." />
+                            </Border>
+
+                            <GroupBox Grid.Row="2"
+                                      Grid.Column="0"
+                                      Margin="0,14,12,0"
+                                      Header="Table actions"
+                                      Visibility="{Binding ShowRoundActions, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <StackPanel>
+                                    <ComboBox ItemsSource="{Binding AvailableMeldRanks}"
+                                              SelectedItem="{Binding SelectedMeldRankName, UpdateSourceTrigger=PropertyChanged}"
+                                              Visibility="{Binding ShowMeldAction, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                              automation:AutomationProperties.Name="Meld rank selector" />
+                                    <WrapPanel>
+                                        <Button Command="{Binding DrawStockCommand}"
+                                                Content="_Draw stock"
+                                                Visibility="{Binding ShowDrawActions, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                automation:AutomationProperties.Name="Draw from the stock pile" />
+                                        <Button Command="{Binding DrawDiscardCommand}"
+                                                Content="Draw _discard"
+                                                Visibility="{Binding ShowDrawActions, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                automation:AutomationProperties.Name="Draw from the discard pile" />
+                                        <Button Command="{Binding MeldCommand}"
+                                                Content="_Meld selected"
+                                                Visibility="{Binding ShowMeldAction, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                automation:AutomationProperties.Name="Meld the selected cards" />
+                                        <Button Command="{Binding DiscardCommand}"
+                                                Content="D_iscard selected"
+                                                Visibility="{Binding ShowDiscardActions, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                automation:AutomationProperties.Name="Discard the selected card" />
+                                        <Button Command="{Binding EndTurnCommand}"
+                                                Content="_End turn"
+                                                Visibility="{Binding ShowDiscardActions, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                automation:AutomationProperties.Name="End the turn by discarding the selected card" />
+                                        <Button Command="{Binding NextRoundCommand}"
+                                                Content="_Next round"
+                                                Visibility="{Binding ShowNextRoundAction, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                                automation:AutomationProperties.Name="Start the next round" />
+                                    </WrapPanel>
+                                </StackPanel>
+                            </GroupBox>
+
+                            <GroupBox Grid.Row="2"
+                                      Grid.Column="1"
+                                      Margin="12,14,0,0"
+                                      Header="Table state">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <ContentPresenter Content="{Binding DiscardPile.TopCardVisual}"
+                                                      ContentTemplate="{StaticResource DisplayCardTemplate}" />
+                                    <StackPanel Grid.Column="1" Margin="14,0,0,0">
+                                        <TextBlock Text="{Binding TableOverview.StockCount, StringFormat=Stock: {0} cards}" />
+                                        <TextBlock Text="{Binding TableOverview.DiscardTopCard, StringFormat=Discard top: {0}}"
+                                                   TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding DiscardPile.IsFrozen, StringFormat=Discard frozen: {0}}" />
+                                        <TextBlock Text="{Binding TableOverview.CurrentTurnMeldPoints, StringFormat=Meld points this turn: {0}}" />
+                                        <TextBlock Text="{Binding TableOverview.CompletedTurns, StringFormat=Completed turns: {0}}" />
+                                        <TextBlock Text="{Binding TableOverview.ShuffleSeed, StringFormat=Shuffle seed: {0}}"
+                                                   TextWrapping="Wrap" />
+                                    </StackPanel>
+                                </Grid>
+                            </GroupBox>
+
+                            <Grid Grid.Row="3"
+                                  Grid.ColumnSpan="2"
+                                  Margin="0,14,0,0">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="1.15*" />
-                                    <ColumnDefinition Width="1.35*" />
+                                    <ColumnDefinition Width="1.1*" />
+                                    <ColumnDefinition Width="0.9*" />
                                 </Grid.ColumnDefinitions>
-                                <GroupBox Header="Legal action summary">
-                                    <ItemsControl ItemsSource="{Binding LegalCommands}">
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <WrapPanel />
-                                            </ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
+
+                                <GroupBox Margin="0,0,12,0" Header="Team melds">
+                                    <ItemsControl ItemsSource="{Binding TeamMelds}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <Border Margin="0,0,10,10"
+                                                <Border Margin="0,0,0,12"
                                                         Padding="12"
-                                                        Width="240"
-                                                        Background="#1C4F9DED"
-                                                        CornerRadius="12">
+                                                        Background="#1435506B"
+                                                        CornerRadius="14">
                                                     <StackPanel>
-                                                        <TextBlock FontWeight="SemiBold" Text="{Binding CommandText}" />
-                                                        <TextBlock Margin="0,6,0,0"
-                                                                   Foreground="#DCEBFF"
-                                                                   Text="{Binding Description}"
+                                                        <TextBlock FontWeight="SemiBold"
+                                                                   Text="{Binding TeamIndex, StringFormat=Team {0}}" />
+                                                        <TextBlock Margin="0,4,0,0"
+                                                                   Foreground="{StaticResource MutedTextBrush}"
+                                                                   Text="{Binding Members, StringFormat=Players: {0}}"
                                                                    TextWrapping="Wrap" />
+                                                        <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding Melds}">
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate>
+                                                                    <StackPanel Margin="0,0,0,10">
+                                                                        <TextBlock FontWeight="SemiBold" Text="{Binding Title}" />
+                                                                        <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding Cards}">
+                                                                            <ItemsControl.ItemsPanel>
+                                                                                <ItemsPanelTemplate>
+                                                                                    <WrapPanel />
+                                                                                </ItemsPanelTemplate>
+                                                                            </ItemsControl.ItemsPanel>
+                                                                            <ItemsControl.ItemTemplate>
+                                                                                <StaticResource ResourceKey="DisplayCardTemplate" />
+                                                                            </ItemsControl.ItemTemplate>
+                                                                        </ItemsControl>
+                                                                    </StackPanel>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
                                                     </StackPanel>
                                                 </Border>
                                             </DataTemplate>
@@ -607,221 +617,137 @@
                                     </ItemsControl>
                                 </GroupBox>
 
-                                <GroupBox Grid.Column="1" Header="Round completion summary">
-                                    <StackPanel>
-                                        <TextBlock Foreground="{StaticResource MutedTextBrush}"
-                                                   Text="{Binding TableOverview.RoundMessage, TargetNullValue=The round is still in progress.}"
-                                                   TextWrapping="Wrap" />
-                                        <TextBlock Margin="0,12,0,0"
-                                                   Foreground="{StaticResource MutedTextBrush}"
-                                                   Text="Use the Navigate menu to jump directly to hands, melds, or rules without leaving the current match context."
-                                                   TextWrapping="Wrap" />
-                                    </StackPanel>
-                                </GroupBox>
-                            </Grid>
-                        </StackPanel>
-                    </ScrollViewer>
-                </TabItem>
+                                <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                                    <GroupBox Header="Legal action summary">
+                                        <ItemsControl ItemsSource="{Binding LegalCommands}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Margin="0,0,0,8"
+                                                            Padding="12"
+                                                            Background="#1C4F9DED"
+                                                            CornerRadius="12">
+                                                        <StackPanel>
+                                                            <TextBlock FontWeight="SemiBold" Text="{Binding CommandText}" />
+                                                            <TextBlock Margin="0,6,0,0"
+                                                                       Foreground="#DCEBFF"
+                                                                       Text="{Binding Description}"
+                                                                       TextWrapping="Wrap" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </GroupBox>
 
-                <TabItem Header="Player hands">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <StackPanel Margin="18">
-                            <Border Padding="20"
-                                    Margin="0,0,0,16"
-                                    Background="#0EFFFFFF"
-                                    BorderBrush="#1FFFFFFF"
-                                    BorderThickness="1"
-                                    CornerRadius="18">
-                                <Grid>
-                                    <StackPanel>
-                                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="{Binding CurrentPlayerHand.Name, TargetNullValue=No active hand}" />
-                                        <TextBlock Margin="0,8,0,0"
-                                                   FontSize="18"
-                                                    FontWeight="SemiBold"
-                                                    Text="{Binding CurrentPlayerHand.CardCount, StringFormat={}{0} cards}" />
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
-
-                            <GroupBox Header="Current player hand">
-                                <ItemsControl ItemsSource="{Binding CurrentPlayerHand.Cards}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <StaticResource ResourceKey="PlayableCardTemplate" />
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </GroupBox>
-
-                            <ItemsControl Margin="0,12,0,0" ItemsSource="{Binding WaitingPlayerHands}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <GroupBox Header="{Binding Header}">
-                                            <StackPanel>
-                                                <TextBlock Margin="0,0,0,10"
-                                                           Foreground="{StaticResource MutedTextBrush}"
-                                                           Text="{Binding CardCount, StringFormat=Cards waiting off-turn: {0}}" />
-                                                <ItemsControl ItemsSource="{Binding Cards}">
-                                                    <ItemsControl.ItemsPanel>
-                                                        <ItemsPanelTemplate>
-                                                            <WrapPanel />
-                                                        </ItemsPanelTemplate>
-                                                    </ItemsControl.ItemsPanel>
-                                                    <ItemsControl.ItemTemplate>
-                                                        <StaticResource ResourceKey="PlayableCardTemplate" />
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                            </StackPanel>
-                                        </GroupBox>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </StackPanel>
-                    </ScrollViewer>
-                </TabItem>
-
-                <TabItem Header="Melds">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <ItemsControl Margin="18" ItemsSource="{Binding TeamMelds}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <GroupBox Header="{Binding TeamIndex, StringFormat=Team {0}}">
+                                    <GroupBox Header="Score summary">
                                         <StackPanel>
-                                            <TextBlock Text="{Binding Members, StringFormat=Players: {0}}" />
-                                            <TextBlock Margin="0,2,0,10" Text="{Binding StartingScore, StringFormat=Starting score: {0}}" />
-                                            <ItemsControl ItemsSource="{Binding Melds}">
+                                            <TextBlock Text="{Binding ScoreSummary.WinningScore, StringFormat=Winning score target: {0}}" />
+                                            <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding ScoreSummary.TeamScores}">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
-                                                        <Border Margin="0,0,0,12"
-                                                                Padding="14"
-                                                                Background="#1435506B"
-                                                                CornerRadius="14">
-                                                            <StackPanel>
-                                                                <TextBlock FontWeight="SemiBold" Text="{Binding Title}" />
-                                                                <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding Cards}">
-                                                                    <ItemsControl.ItemsPanel>
-                                                                        <ItemsPanelTemplate>
-                                                                            <WrapPanel />
-                                                                        </ItemsPanelTemplate>
-                                                                    </ItemsControl.ItemsPanel>
-                                                                    <ItemsControl.ItemTemplate>
-                                                                        <StaticResource ResourceKey="DisplayCardTemplate" />
-                                                                    </ItemsControl.ItemTemplate>
-                                                                </ItemsControl>
-                                                            </StackPanel>
+                                                        <Border Margin="0,0,0,8"
+                                                                Padding="12"
+                                                                Background="#151FFFFFF"
+                                                                CornerRadius="12">
+                                                            <TextBlock Text="{Binding SummaryText}" />
                                                         </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            <ItemsControl Margin="0,8,0,0" ItemsSource="{Binding ScoreSummary.RoundSummaryLines}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Margin="0,0,0,6"
+                                                                   Foreground="{StaticResource MutedTextBrush}"
+                                                                   Text="{Binding}"
+                                                                   TextWrapping="Wrap" />
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
                                             </ItemsControl>
                                         </StackPanel>
                                     </GroupBox>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </TabItem>
-
-                <TabItem Header="Discard pile">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <StackPanel Margin="18">
-                            <Grid Margin="0,0,0,16">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <GroupBox Header="Top discard card">
-                                    <StackPanel>
-                                        <ContentPresenter Content="{Binding DiscardPile.TopCardVisual}"
-                                                          ContentTemplate="{StaticResource DisplayCardTemplate}" />
-                                        <TextBlock Margin="0,8,0,0"
-                                                   Foreground="{StaticResource MutedTextBrush}"
-                                                   Text="{Binding DiscardPile.IsFrozen, StringFormat=Frozen pile: {0}}" />
-                                    </StackPanel>
-                                </GroupBox>
-                                <GroupBox Grid.Column="1" Header="Pile order (top first)">
-                                    <ItemsControl ItemsSource="{Binding DiscardPile.Cards}">
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate>
-                                                <WrapPanel />
-                                            </ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                        <ItemsControl.ItemTemplate>
-                                            <StaticResource ResourceKey="DisplayCardTemplate" />
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </GroupBox>
-                            </Grid>
-                        </StackPanel>
-                    </ScrollViewer>
-                </TabItem>
-
-                <TabItem Header="Score summary">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <StackPanel Margin="18">
-                            <GroupBox Header="Match totals">
-                                <StackPanel>
-                                    <TextBlock Text="{Binding ScoreSummary.WinningScore, StringFormat=Winning score target: {0}}" />
-                                    <ItemsControl Margin="0,10,0,0" ItemsSource="{Binding ScoreSummary.TeamScores}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border Margin="0,0,0,8"
-                                                        Padding="12"
-                                                        Background="#151FFFFFF"
-                                                        CornerRadius="12">
-                                                    <TextBlock Text="{Binding SummaryText}" />
-                                                </Border>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
                                 </StackPanel>
-                            </GroupBox>
-
-                            <GroupBox Header="Completed-round summary">
-                                <ItemsControl ItemsSource="{Binding ScoreSummary.RoundSummaryLines}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Margin="0,0,0,8"
-                                                    Padding="12"
-                                                    Background="#1235506B"
-                                                    CornerRadius="12">
-                                                <TextBlock Text="{Binding}" TextWrapping="Wrap" />
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </GroupBox>
-                        </StackPanel>
+                            </Grid>
+                        </Grid>
                     </ScrollViewer>
-                </TabItem>
+                </Border>
 
-                <TabItem Header="Rules help">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <StackPanel Margin="18">
-                            <TextBlock FontSize="24" FontWeight="SemiBold" Text="Quick rules help" />
-                            <TextBlock Margin="0,6,0,16"
+                <Border Grid.Row="1"
+                        Grid.Column="4">
+                    <Border.Style>
+                        <Style BasedOn="{StaticResource SeatPanelStyle}" TargetType="Border">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RightSeatHand}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <DockPanel LastChildFill="True">
+                        <StackPanel DockPanel.Dock="Top">
+                            <TextBlock FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Text="{Binding RightSeatHand.Name}" />
+                            <TextBlock Margin="0,4,0,0"
                                        Foreground="{StaticResource MutedTextBrush}"
-                                       Text="Use the richer navigation menu to keep this help nearby while you move between the overview, hands, melds, and discard pile."
-                                       TextWrapping="Wrap" />
-
-                            <ItemsControl ItemsSource="{Binding RulesHelpLines}">
+                                       Text="{Binding RightSeatHand.CardCount, StringFormat={}{0} cards}" />
+                        </StackPanel>
+                        <ScrollViewer Margin="0,12,0,0"
+                                      VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl ItemsSource="{Binding RightSeatHand.Cards}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Margin="0,0,0,10"
-                                                Padding="14"
-                                                Background="#1235506B"
-                                                CornerRadius="14">
-                                            <TextBlock Text="{Binding StringFormat=• {0}}" TextWrapping="Wrap" />
-                                        </Border>
-                                    </DataTemplate>
+                                    <StaticResource ResourceKey="DisplayCardTemplate" />
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                        </StackPanel>
-                    </ScrollViewer>
-                </TabItem>
-            </TabControl>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
+
+                <Border Grid.Row="2"
+                        Grid.Column="2"
+                        Margin="0,16,0,0">
+                    <Border.Style>
+                        <Style BasedOn="{StaticResource SeatPanelStyle}" TargetType="Border" />
+                    </Border.Style>
+                    <StackPanel>
+                        <DockPanel>
+                            <StackPanel>
+                                <TextBlock FontSize="22"
+                                           FontWeight="SemiBold"
+                                           Text="{Binding BottomSeatHand.Name, TargetNullValue=No active hand}" />
+                                <TextBlock Margin="0,4,0,0"
+                                           Foreground="{StaticResource MutedTextBrush}"
+                                           Text="{Binding BottomSeatHand.StatusText, TargetNullValue=Waiting for the next round.}" />
+                            </StackPanel>
+                            <TextBlock DockPanel.Dock="Right"
+                                       FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Text="{Binding BottomSeatHand.CardCount, StringFormat={}{0} cards}" />
+                        </DockPanel>
+                        <ScrollViewer Margin="0,12,0,0"
+                                      HorizontalScrollBarVisibility="Disabled"
+                                      VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding BottomSeatHand.Cards}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <StaticResource ResourceKey="PlayableCardTemplate" />
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </StackPanel>
+                </Border>
+            </Grid>
         </Grid>
     </DockPanel>
 </Window>
