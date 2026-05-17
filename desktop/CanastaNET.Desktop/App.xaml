@@ -10,6 +10,7 @@
         <Color x:Key="MutedTextColor">#FFB6C2CF</Color>
         <Color x:Key="ActionColor">#FF4F9DED</Color>
         <Color x:Key="SuccessColor">#FF2C9A63</Color>
+        <Color x:Key="PanelOutlineColor">#33FFFFFF</Color>
 
         <SolidColorBrush x:Key="AppBackgroundBrush" Color="{StaticResource AppBackgroundColor}" />
         <SolidColorBrush x:Key="PanelBackgroundBrush" Color="{StaticResource PanelBackgroundColor}" />
@@ -18,6 +19,7 @@
         <SolidColorBrush x:Key="MutedTextBrush" Color="{StaticResource MutedTextColor}" />
         <SolidColorBrush x:Key="ActionBrush" Color="{StaticResource ActionColor}" />
         <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
+        <SolidColorBrush x:Key="PanelOutlineBrush" Color="{StaticResource PanelOutlineColor}" />
 
         <Style TargetType="Window">
             <Setter Property="Background" Value="{StaticResource AppBackgroundBrush}" />
@@ -31,18 +33,37 @@
             <Setter Property="BorderBrush" Value="{StaticResource PanelAccentBrush}" />
             <Setter Property="Background" Value="{StaticResource PanelBackgroundBrush}" />
             <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
         </Style>
 
         <Style TargetType="Button">
             <Setter Property="Margin" Value="0,0,8,8" />
-            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="Padding" Value="12,8" />
             <Setter Property="Background" Value="{StaticResource ActionBrush}" />
             <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
 
         <Style TargetType="TextBox">
             <Setter Property="Margin" Value="0,0,0,8" />
             <Setter Property="Padding" Value="6" />
+            <Setter Property="BorderBrush" Value="{StaticResource PanelOutlineBrush}" />
+            <Setter Property="Background" Value="#FFF8FBFF" />
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="Padding" Value="6" />
+        </Style>
+
+        <Style TargetType="Menu">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Padding" Value="4" />
+        </Style>
+
+        <Style TargetType="MenuItem">
+            <Setter Property="Padding" Value="8,4" />
         </Style>
 
         <Style TargetType="TabItem">
