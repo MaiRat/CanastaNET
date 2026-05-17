@@ -11,6 +11,10 @@
         <Color x:Key="ActionColor">#FF4F9DED</Color>
         <Color x:Key="SuccessColor">#FF2C9A63</Color>
         <Color x:Key="PanelOutlineColor">#33FFFFFF</Color>
+        <Color x:Key="MenuBarBackgroundColor">#FF203244</Color>
+        <Color x:Key="MenuPopupBackgroundColor">#FFF7FBFF</Color>
+        <Color x:Key="MenuPopupTextColor">#FF17212B</Color>
+        <Color x:Key="MenuDisabledTextColor">#FF7A8A99</Color>
 
         <SolidColorBrush x:Key="AppBackgroundBrush" Color="{StaticResource AppBackgroundColor}" />
         <SolidColorBrush x:Key="PanelBackgroundBrush" Color="{StaticResource PanelBackgroundColor}" />
@@ -20,6 +24,10 @@
         <SolidColorBrush x:Key="ActionBrush" Color="{StaticResource ActionColor}" />
         <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
         <SolidColorBrush x:Key="PanelOutlineBrush" Color="{StaticResource PanelOutlineColor}" />
+        <SolidColorBrush x:Key="MenuBarBackgroundBrush" Color="{StaticResource MenuBarBackgroundColor}" />
+        <SolidColorBrush x:Key="MenuPopupBackgroundBrush" Color="{StaticResource MenuPopupBackgroundColor}" />
+        <SolidColorBrush x:Key="MenuPopupTextBrush" Color="{StaticResource MenuPopupTextColor}" />
+        <SolidColorBrush x:Key="MenuDisabledTextBrush" Color="{StaticResource MenuDisabledTextColor}" />
 
         <Style TargetType="Window">
             <Setter Property="Background" Value="{StaticResource AppBackgroundBrush}" />
@@ -60,10 +68,32 @@
         <Style TargetType="Menu">
             <Setter Property="FontSize" Value="14" />
             <Setter Property="Padding" Value="4" />
+            <Setter Property="Background" Value="{StaticResource MenuBarBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}" />
         </Style>
 
         <Style TargetType="MenuItem">
             <Setter Property="Padding" Value="8,4" />
+            <Setter Property="Background" Value="{StaticResource MenuPopupBackgroundBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource MenuPopupTextBrush}" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Style.Triggers>
+                <Trigger Property="Role" Value="TopLevelHeader">
+                    <Setter Property="Background" Value="{StaticResource MenuBarBackgroundBrush}" />
+                    <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}" />
+                </Trigger>
+                <Trigger Property="Role" Value="TopLevelItem">
+                    <Setter Property="Background" Value="{StaticResource MenuBarBackgroundBrush}" />
+                    <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}" />
+                </Trigger>
+                <Trigger Property="IsHighlighted" Value="True">
+                    <Setter Property="Background" Value="{StaticResource ActionBrush}" />
+                    <Setter Property="Foreground" Value="White" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Foreground" Value="{StaticResource MenuDisabledTextBrush}" />
+                </Trigger>
+            </Style.Triggers>
         </Style>
 
     </Application.Resources>

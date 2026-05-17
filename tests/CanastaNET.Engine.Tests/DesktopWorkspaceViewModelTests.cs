@@ -266,6 +266,47 @@ public class DesktopWorkspaceViewModelTests
     }
 
     [Fact]
+    public void MainWindowXaml_ExpandsSideSeatHandsVertically()
+    {
+        var xaml = File.ReadAllText(GetMainWindowXamlPath());
+        var leftSeatSection = ExtractSection(
+            xaml,
+            "<Border Grid.Row=\"1\"\n                        Grid.Column=\"0\">",
+            "                </Border>");
+        var rightSeatSection = ExtractSection(
+            xaml,
+            "<Border Grid.Row=\"1\"\n                        Grid.Column=\"4\">",
+            "                </Border>");
+
+        Assert.Contains("<Grid Margin=\"0,0,18,0\">", leftSeatSection, StringComparison.Ordinal);
+        Assert.Contains("<RowDefinition Height=\"Auto\" />", leftSeatSection, StringComparison.Ordinal);
+        Assert.Contains("<RowDefinition Height=\"*\" />", leftSeatSection, StringComparison.Ordinal);
+        Assert.Contains("<ScrollViewer Grid.Row=\"1\"", leftSeatSection, StringComparison.Ordinal);
+        Assert.DoesNotContain("Margin=\"0,68,18,68\"", leftSeatSection, StringComparison.Ordinal);
+
+        Assert.Contains("<Grid Margin=\"18,0,0,0\">", rightSeatSection, StringComparison.Ordinal);
+        Assert.Contains("<RowDefinition Height=\"Auto\" />", rightSeatSection, StringComparison.Ordinal);
+        Assert.Contains("<RowDefinition Height=\"*\" />", rightSeatSection, StringComparison.Ordinal);
+        Assert.Contains("<ScrollViewer Grid.Row=\"1\"", rightSeatSection, StringComparison.Ordinal);
+        Assert.DoesNotContain("Margin=\"18,68,0,68\"", rightSeatSection, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AppXaml_UsesHighContrastMenuColors()
+    {
+        var xaml = File.ReadAllText(GetAppXamlPath());
+
+        Assert.Contains("x:Key=\"MenuBarBackgroundColor\">#FF203244</Color>", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Key=\"MenuPopupBackgroundColor\">#FFF7FBFF</Color>", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Key=\"MenuPopupTextColor\">#FF17212B</Color>", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Setter Property=\"Background\" Value=\"{StaticResource MenuBarBackgroundBrush}\" />", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Setter Property=\"Foreground\" Value=\"{StaticResource MenuPopupTextBrush}\" />", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Trigger Property=\"Role\" Value=\"TopLevelHeader\">", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Trigger Property=\"IsHighlighted\" Value=\"True\">", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Trigger Property=\"IsEnabled\" Value=\"False\">", xaml, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void MainWindowXaml_CentersStockAndDiscardPilesTogether()
     {
         var xaml = File.ReadAllText(GetMainWindowXamlPath());
@@ -281,6 +322,23 @@ public class DesktopWorkspaceViewModelTests
     {
         var repositoryRoot = FindRepositoryRoot();
         return Path.Combine(repositoryRoot, "desktop", "CanastaNET.Desktop", "MainWindow.xaml");
+    }
+
+    private static string GetAppXamlPath()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        return Path.Combine(repositoryRoot, "desktop", "CanastaNET.Desktop", "App.xaml");
+    }
+
+    private static string ExtractSection(string source, string startMarker, string endMarker)
+    {
+        var startIndex = source.IndexOf(startMarker, StringComparison.Ordinal);
+        Assert.True(startIndex >= 0, $"Expected to find start marker '{startMarker}'.");
+
+        var endIndex = source.IndexOf(endMarker, startIndex, StringComparison.Ordinal);
+        Assert.True(endIndex >= 0, $"Expected to find end marker '{endMarker}'.");
+
+        return source[startIndex..(endIndex + endMarker.Length)];
     }
 
     private static string FindRepositoryRoot()
