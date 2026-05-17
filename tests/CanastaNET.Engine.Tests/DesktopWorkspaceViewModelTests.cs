@@ -18,9 +18,14 @@ public class DesktopWorkspaceViewModelTests
         Assert.NotNull(workspace.DiscardPile.TopCardVisual);
         Assert.Equal(workspace.ScoreSummary.TeamScores.Count, workspace.TeamMelds.Count);
         Assert.Contains(workspace.LegalCommands, command => command.CommandText == "draw stock");
-        Assert.Contains("draw stock", workspace.NextActionPrompt!, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("Draw from the stock or discard pile to start the turn.", workspace.NextActionPrompt);
         Assert.NotEmpty(workspace.RulesHelpLines);
         Assert.NotEmpty(workspace.SetupPresets);
+        Assert.True(workspace.ShowDrawActions);
+        Assert.True(workspace.ShowRoundActions);
+        Assert.True(workspace.ShowNextActionPrompt);
+        Assert.False(workspace.ShowMeldAction);
+        Assert.False(workspace.ShowDiscardActions);
     }
 
     [Fact]
@@ -53,9 +58,17 @@ public class DesktopWorkspaceViewModelTests
 
         Assert.Equal("AwaitingDiscard", workspace.TableOverview.TurnPhase);
         Assert.Equal(handSizeBeforeDraw + 1, workspace.PlayerHands.Single(hand => hand.IsCurrentPlayer).Cards.Count);
+        Assert.True(workspace.ShowSelectionPrompt);
+        Assert.Equal("Select cards to reveal meld and discard actions.", workspace.NextActionPrompt);
 
         var currentHand = workspace.PlayerHands.Single(hand => hand.IsCurrentPlayer);
         currentHand.Cards[0].IsSelected = true;
+
+        Assert.True(workspace.ShowMeldAction);
+        Assert.True(workspace.ShowDiscardActions);
+        Assert.False(workspace.ShowSelectionPrompt);
+        Assert.Equal("Discard the selected card or meld it if the play is legal.", workspace.NextActionPrompt);
+
         workspace.EndTurnCommand.Execute(null);
 
         Assert.Equal("AwaitingDraw", workspace.TableOverview.TurnPhase);
