@@ -75,6 +75,9 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
     private string? selectedSetupPresetName;
     private string matchFilePath = Path.Combine(Path.GetTempPath(), "canasta-match.json");
     private string? selectedRecentMatchPath;
+    private bool showCardPointBadges = true;
+    private bool showDeckRibbons = true;
+    private bool useCompactCardSpacing;
 
     public CanastaWorkspaceViewModel()
     {
@@ -142,6 +145,24 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
         private set => SetProperty(ref nextActionPrompt, value);
     }
 
+    public bool ShowCardPointBadges
+    {
+        get => showCardPointBadges;
+        set => SetProperty(ref showCardPointBadges, value);
+    }
+
+    public bool ShowDeckRibbons
+    {
+        get => showDeckRibbons;
+        set => SetProperty(ref showDeckRibbons, value);
+    }
+
+    public bool UseCompactCardSpacing
+    {
+        get => useCompactCardSpacing;
+        set => SetProperty(ref useCompactCardSpacing, value);
+    }
+
     public string MatchFilePath
     {
         get => matchFilePath;
@@ -169,6 +190,10 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
     public TableOverviewViewModel TableOverview { get; private set; } = TableOverviewViewModel.Empty;
 
     public IReadOnlyList<PlayerHandViewModel> PlayerHands { get; private set; } = [];
+
+    public PlayerHandViewModel? CurrentPlayerHand { get; private set; }
+
+    public IReadOnlyList<PlayerHandViewModel> WaitingPlayerHands { get; private set; } = [];
 
     public IReadOnlyList<TeamMeldsViewModel> TeamMelds { get; private set; } = [];
 
@@ -376,6 +401,12 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
                 currentPlayerSelections))
             .ToArray();
         OnPropertyChanged(nameof(PlayerHands));
+
+        CurrentPlayerHand = PlayerHands.SingleOrDefault(player => player.IsCurrentPlayer);
+        OnPropertyChanged(nameof(CurrentPlayerHand));
+
+        WaitingPlayerHands = PlayerHands.Where(player => !player.IsCurrentPlayer).ToArray();
+        OnPropertyChanged(nameof(WaitingPlayerHands));
 
         TeamMelds = snapshot.CurrentRound.Teams
             .Select(team => TeamMeldsViewModel.Create(team, snapshot.CurrentRound.Players))
@@ -679,6 +710,10 @@ public sealed class PlayerHandViewModel
 
     public IReadOnlyList<CardItemViewModel> Cards { get; }
 
+    public int CardCount => Cards.Count;
+
+    public string StatusText => IsCurrentPlayer ? "Active hand" : "Waiting hand";
+
     public string Header => IsCurrentPlayer
         ? $"{Name} (current player, team {TeamIndex})"
         : $"{Name} (team {TeamIndex})";
@@ -700,6 +735,37 @@ public sealed class PlayerHandViewModel
     }
 }
 
+public sealed record CardVisualViewModel(
+    int InstanceId,
+    string DisplayText,
+    string RankText,
+    string SuitText,
+    string SuitSymbol,
+    string CardTypeLabel,
+    string DeckLabel,
+    int PointValue,
+    bool IsWild,
+    bool IsJoker,
+    string AccentColor,
+    string SurfaceColor)
+{
+    public string PointBadgeText => $"{PointValue} pts";
+
+    public static CardVisualViewModel Create(Card card) => new(
+        card.InstanceId,
+        CardFormatter.Format(card),
+        CardFormatter.FormatRank(card),
+        card.Suit?.ToString() ?? "Joker",
+        CardFormatter.FormatSuitSymbol(card),
+        CardFormatter.FormatCardType(card),
+        $"Deck {card.DeckNumber}",
+        card.PointValue,
+        card.IsWild,
+        card.IsJoker,
+        CardFormatter.GetAccentColor(card),
+        CardFormatter.GetSurfaceColor(card));
+}
+
 public sealed class CardItemViewModel : ObservableObject
 {
     private readonly Action selectionChanged;
@@ -707,10 +773,19 @@ public sealed class CardItemViewModel : ObservableObject
 
     public CardItemViewModel(Card card, bool canSelect, Action selectionChanged)
     {
+        var visual = CardVisualViewModel.Create(card);
         InstanceId = card.InstanceId;
-        DisplayText = CardFormatter.Format(card);
+        DisplayText = visual.DisplayText;
+        RankText = visual.RankText;
+        SuitText = visual.SuitText;
+        SuitSymbol = visual.SuitSymbol;
+        CardTypeLabel = visual.CardTypeLabel;
+        DeckLabel = visual.DeckLabel;
         PointValue = card.PointValue;
         IsWild = card.IsWild;
+        IsJoker = card.IsJoker;
+        AccentColor = visual.AccentColor;
+        SurfaceColor = visual.SurfaceColor;
         CanSelect = canSelect;
         this.selectionChanged = selectionChanged;
     }
@@ -719,9 +794,25 @@ public sealed class CardItemViewModel : ObservableObject
 
     public string DisplayText { get; }
 
+    public string RankText { get; }
+
+    public string SuitText { get; }
+
+    public string SuitSymbol { get; }
+
+    public string CardTypeLabel { get; }
+
+    public string DeckLabel { get; }
+
     public int PointValue { get; }
 
     public bool IsWild { get; }
+
+    public bool IsJoker { get; }
+
+    public string AccentColor { get; }
+
+    public string SurfaceColor { get; }
 
     public bool CanSelect { get; }
 
@@ -771,7 +862,7 @@ public sealed class TeamMeldsViewModel
 
 public sealed class MeldViewModel
 {
-    private MeldViewModel(string title, IReadOnlyList<string> cards)
+    private MeldViewModel(string title, IReadOnlyList<CardVisualViewModel> cards)
     {
         Title = title;
         Cards = cards;
@@ -779,7 +870,7 @@ public sealed class MeldViewModel
 
     public string Title { get; }
 
-    public IReadOnlyList<string> Cards { get; }
+    public IReadOnlyList<CardVisualViewModel> Cards { get; }
 
     public static MeldViewModel Create(MeldSnapshot snapshot)
     {
@@ -794,18 +885,19 @@ public sealed class MeldViewModel
 
         return new MeldViewModel(
             $"{rankLabel} - {canastaLabel} ({snapshot.Cards.Count} cards, {naturalCards} natural, {wildCards} wild)",
-            snapshot.Cards.Select(CardFormatter.Format).ToArray());
+            snapshot.Cards.Select(CardVisualViewModel.Create).ToArray());
     }
 }
 
 public sealed class DiscardPileViewModel
 {
-    public static readonly DiscardPileViewModel Empty = new(false, "(empty)", []);
+    public static readonly DiscardPileViewModel Empty = new(false, "(empty)", null, []);
 
-    private DiscardPileViewModel(bool isFrozen, string topCard, IReadOnlyList<string> cards)
+    private DiscardPileViewModel(bool isFrozen, string topCard, CardVisualViewModel? topCardVisual, IReadOnlyList<CardVisualViewModel> cards)
     {
         IsFrozen = isFrozen;
         TopCard = topCard;
+        TopCardVisual = topCardVisual;
         Cards = cards;
     }
 
@@ -813,12 +905,15 @@ public sealed class DiscardPileViewModel
 
     public string TopCard { get; }
 
-    public IReadOnlyList<string> Cards { get; }
+    public CardVisualViewModel? TopCardVisual { get; }
+
+    public IReadOnlyList<CardVisualViewModel> Cards { get; }
 
     public static DiscardPileViewModel Create(IReadOnlyList<Card> discardPile) => new(
         discardPile.Any(card => card.IsWild),
         discardPile.Count == 0 ? "(empty)" : CardFormatter.Format(discardPile[^1]),
-        discardPile.Reverse().Select(CardFormatter.Format).ToArray());
+        discardPile.Count == 0 ? null : CardVisualViewModel.Create(discardPile[^1]),
+        discardPile.Reverse().Select(CardVisualViewModel.Create).ToArray());
 }
 
 public sealed class ScoreSummaryViewModel
@@ -941,6 +1036,49 @@ public sealed record RecentMatchEntryViewModel(string Path, string Summary)
 internal static class CardFormatter
 {
     public static string Format(Card card) => $"#{card.InstanceId} {card} [{card.PointValue} pts]";
+
+    public static string FormatRank(Card card) => card.Rank switch
+    {
+        CardRank.Ace => "A",
+        CardRank.Jack => "J",
+        CardRank.Queen => "Q",
+        CardRank.King => "K",
+        CardRank.Joker => "JK",
+        _ => ((int)card.Rank).ToString()
+    };
+
+    public static string FormatSuitSymbol(Card card) => card.Suit switch
+    {
+        CardSuit.Clubs => "♣",
+        CardSuit.Diamonds => "♦",
+        CardSuit.Hearts => "♥",
+        CardSuit.Spades => "♠",
+        _ => "★"
+    };
+
+    public static string FormatCardType(Card card) => card.IsJoker
+        ? "Joker"
+        : card.IsWild
+            ? "Wild"
+            : "Natural";
+
+    public static string GetAccentColor(Card card) => card.Suit switch
+    {
+        CardSuit.Hearts => "#FFC63D51",
+        CardSuit.Diamonds => "#FFCB6C36",
+        CardSuit.Clubs => "#FF2F5D50",
+        CardSuit.Spades => "#FF35506B",
+        _ => "#FF9866D3"
+    };
+
+    public static string GetSurfaceColor(Card card) => card.Suit switch
+    {
+        CardSuit.Hearts => "#FFFFF7F8",
+        CardSuit.Diamonds => "#FFFFF8F3",
+        CardSuit.Clubs => "#FFF5FBF9",
+        CardSuit.Spades => "#FFF5F8FD",
+        _ => "#FFF8F3FF"
+    };
 }
 
 public abstract class ObservableObject : INotifyPropertyChanged

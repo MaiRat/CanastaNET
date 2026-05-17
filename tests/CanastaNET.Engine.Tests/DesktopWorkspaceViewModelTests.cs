@@ -12,7 +12,10 @@ public class DesktopWorkspaceViewModelTests
         Assert.Equal(1, workspace.TableOverview.RoundNumber);
         Assert.Equal("AwaitingDraw", workspace.TableOverview.TurnPhase);
         Assert.Equal(workspace.TableOverview.CurrentPlayerName, workspace.PlayerHands.Single(hand => hand.IsCurrentPlayer).Name);
+        Assert.NotNull(workspace.CurrentPlayerHand);
+        Assert.All(workspace.WaitingPlayerHands, hand => Assert.False(hand.IsCurrentPlayer));
         Assert.NotEmpty(workspace.DiscardPile.Cards);
+        Assert.NotNull(workspace.DiscardPile.TopCardVisual);
         Assert.Equal(workspace.ScoreSummary.TeamScores.Count, workspace.TeamMelds.Count);
         Assert.Contains(workspace.LegalCommands, command => command.CommandText == "draw stock");
         Assert.Contains("draw stock", workspace.NextActionPrompt!, StringComparison.OrdinalIgnoreCase);
@@ -124,5 +127,38 @@ public class DesktopWorkspaceViewModelTests
                 File.Delete(snapshotPath);
             }
         }
+    }
+
+    [Fact]
+    public void CardPresentation_ExposesStyledMetadata_ForTableArtwork()
+    {
+        var workspace = new CanastaWorkspaceViewModel();
+        var currentCard = workspace.CurrentPlayerHand!.Cards[0];
+        var discardTopCard = workspace.DiscardPile.TopCardVisual!;
+
+        Assert.False(string.IsNullOrWhiteSpace(currentCard.RankText));
+        Assert.False(string.IsNullOrWhiteSpace(currentCard.SuitSymbol));
+        Assert.StartsWith("#FF", currentCard.AccentColor, StringComparison.Ordinal);
+        Assert.StartsWith("#FF", currentCard.SurfaceColor, StringComparison.Ordinal);
+        Assert.False(string.IsNullOrWhiteSpace(currentCard.DeckLabel));
+        Assert.False(string.IsNullOrWhiteSpace(discardTopCard.CardTypeLabel));
+    }
+
+    [Fact]
+    public void ViewSettings_DefaultToDetailedCardPresentation_AndCanBeChanged()
+    {
+        var workspace = new CanastaWorkspaceViewModel();
+
+        Assert.True(workspace.ShowCardPointBadges);
+        Assert.True(workspace.ShowDeckRibbons);
+        Assert.False(workspace.UseCompactCardSpacing);
+
+        workspace.ShowCardPointBadges = false;
+        workspace.ShowDeckRibbons = false;
+        workspace.UseCompactCardSpacing = true;
+
+        Assert.False(workspace.ShowCardPointBadges);
+        Assert.False(workspace.ShowDeckRibbons);
+        Assert.True(workspace.UseCompactCardSpacing);
     }
 }

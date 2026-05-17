@@ -88,16 +88,24 @@ CanastaNET is a .NET/C# Canasta project with a Canasta game engine. The reposito
   dotnet test tests/CanastaNET.Engine.Tests --filter DesktopWorkspaceViewModelTests
   ```
 
+### Desktop UX notes
+
+- The WPF shell now includes richer `File`, `Navigate`, `Settings`, and `Help` menus for quicker table navigation and card-view adjustments.
+- Playing cards are rendered with dependency-free WPF templates (suit glyphs, accent colors, point badges, deck ribbons, and compact-spacing settings).
+- No additional third-party/NuGet UI package was added for the card refresh because modern maintained WPF playing-card-specific packages are limited; the upgraded artwork stays within the existing project dependencies.
+
 ### Manual verification checklist
 
 On a Windows machine, launch the desktop app and verify:
 
+- the top menu supports file actions, tab navigation, and card-view settings without disrupting the active match
 - the onboarding panel can apply setup presets, show rules help, and surface a clear legal-next-action prompt
 - the setup panel can start a seeded match with custom players and scoring options
 - Ctrl+N / Ctrl+S / Ctrl+O / Ctrl+D trigger the expected start, save, load, and draw workflows
 - the snapshot panel can save the current match, load it again, and populate recent-match history entries
 - the table overview tab reflects the current player, turn phase, stock count, discard top card, and legal commands
-- the player hands tab allows selecting the current player's cards for draw/meld/discard workflows
-- the melds, discard pile, and score summary tabs update after each action
+- the player hands tab highlights the active hand with the upgraded playing-card visuals and allows selecting cards for draw/meld/discard workflows
+- the melds and discard pile tabs show the upgraded playing-card visuals and stay synchronized after each action
+- the Settings menu toggles point badges, deck ribbons, and compact card spacing across hands, melds, and discard views
 - the rules help tab provides onboarding reminders for draw, meld, discard, and snapshot workflows
 - invalid actions show validation feedback from the engine, and `Next round` becomes available after a completed round
