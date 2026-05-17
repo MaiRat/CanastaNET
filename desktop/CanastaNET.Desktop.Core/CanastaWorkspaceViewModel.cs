@@ -501,7 +501,7 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
     private void RememberRecentMatch(string path, string actionDescription)
     {
         var fullPath = Path.GetFullPath(path);
-        var updated = new[] { RecentMatchEntryViewModel.Create(fullPath, actionDescription, TableOverview.RoundNumber, TableOverview.CurrentPlayerName, TableOverview.TurnPhase.ToString()) }
+        var updated = new[] { RecentMatchEntryViewModel.Create(fullPath, actionDescription, TableOverview.RoundNumber, TableOverview.CurrentPlayerName, FormatTurnPhaseLabel(TableOverview.TurnPhase)) }
             .Concat(RecentMatches.Where(entry => !string.Equals(entry.Path, fullPath, StringComparison.OrdinalIgnoreCase)))
             .Take(MaxRecentMatchCount)
             .ToArray();
@@ -538,6 +538,14 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
         GameCommandType.Meld => $"meld {string.Join(' ', command.CardInstanceIds)}",
         GameCommandType.Discard => $"discard {command.CardInstanceIds.Single()}",
         _ => command.CommandType.ToString()
+    };
+
+    internal static string FormatTurnPhaseLabel(TurnPhase turnPhase) => turnPhase switch
+    {
+        TurnPhase.AwaitingDraw => "Awaiting draw",
+        TurnPhase.AwaitingDiscard => "Awaiting discard",
+        TurnPhase.Completed => "Completed",
+        _ => turnPhase.ToString()
     };
 }
 
@@ -689,6 +697,8 @@ public sealed class TableOverviewViewModel
     public int CurrentPlayerTeamIndex { get; }
 
     public TurnPhase TurnPhase { get; }
+
+    public string TurnPhaseLabel => CanastaWorkspaceViewModel.FormatTurnPhaseLabel(TurnPhase);
 
     public int CompletedTurns { get; }
 

@@ -343,7 +343,7 @@
                                Text="{Binding TableOverview.CurrentPlayerName}" />
                     <TextBlock Margin="0,4,0,0"
                                Foreground="{StaticResource MutedTextBrush}"
-                               Text="{Binding TableOverview.TurnPhase}" />
+                               Text="{Binding TableOverview.TurnPhaseLabel}" />
                 </StackPanel>
                 <Border Grid.Column="2"
                         Margin="18,0,0,0"
@@ -354,6 +354,7 @@
                         Visibility="{Binding ShowNextActionPrompt, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <StackPanel>
                         <TextBlock Text="{Binding NextActionPrompt}"
+                                   automation:AutomationProperties.Name="Next action prompt"
                                     TextWrapping="Wrap"
                                     automation:AutomationProperties.HelpText="Suggested next legal action for the current table state." />
                     </StackPanel>
@@ -413,11 +414,13 @@
                     <TextBlock Margin="0,8,0,0"
                                Foreground="{StaticResource MutedTextBrush}"
                                Text="{Binding NextActionPrompt}"
+                               automation:AutomationProperties.Name="Selection prompt"
                                TextWrapping="Wrap"
                                Visibility="{Binding ShowSelectionPrompt, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
                     <Expander Header="Match setup"
-                              IsExpanded="False">
+                              IsExpanded="False"
+                              automation:AutomationProperties.Name="Match setup section">
                         <StackPanel>
                             <ComboBox Margin="0,10,0,8"
                                       ItemsSource="{Binding SetupPresets}"
@@ -483,11 +486,13 @@
                     </Expander>
 
                     <Expander Header="Snapshots"
-                              IsExpanded="False">
+                              IsExpanded="False"
+                              automation:AutomationProperties.Name="Snapshots section">
                         <StackPanel>
                             <ComboBox Margin="0,0,0,10"
                                       ItemsSource="{Binding AvailableMeldRanks}"
                                       SelectedItem="{Binding SelectedMeldRankName, UpdateSourceTrigger=PropertyChanged}"
+                                      automation:AutomationProperties.Name="Meld rank selector"
                                       Visibility="{Binding ShowMeldAction, Converter={StaticResource BooleanToVisibilityConverter}}" />
                             <TextBox Text="{Binding MatchFilePath, UpdateSourceTrigger=PropertyChanged}"
                                      automation:AutomationProperties.Name="Match snapshot path" />
