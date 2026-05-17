@@ -247,10 +247,22 @@ public class DesktopWorkspaceViewModelTests
 
         Assert.Contains("x:Key=\"OverlappedHorizontalHandItemStyle\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Key=\"OverlappedVerticalHandItemStyle\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("ItemContainerStyle=\"{StaticResource OverlappedHorizontalHandItemStyle}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("ItemContainerStyle=\"{StaticResource OverlappedVerticalHandItemStyle}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("<StackPanel Orientation=\"Vertical\" />", xaml, StringComparison.Ordinal);
-        Assert.Contains("VerticalAlignment=\"Bottom\"", xaml, StringComparison.Ordinal);
+        Assert.Matches(new Regex(
+            "ItemsControl ItemsSource=\\\"\\{Binding TopSeatHand\\.Cards\\}\\\"[\\s\\S]*?VerticalAlignment=\\\"Bottom\\\"[\\s\\S]*?ItemContainerStyle=\\\"\\{StaticResource OverlappedHorizontalHandItemStyle\\}\\\"",
+            RegexOptions.CultureInvariant),
+            xaml);
+        Assert.Matches(new Regex(
+            "ItemsControl ItemsSource=\\\"\\{Binding LeftSeatHand\\.Cards\\}\\\"[\\s\\S]*?ItemContainerStyle=\\\"\\{StaticResource OverlappedVerticalHandItemStyle\\}\\\"[\\s\\S]*?<StackPanel Orientation=\\\"Vertical\\\"\\s*/>",
+            RegexOptions.CultureInvariant),
+            xaml);
+        Assert.Matches(new Regex(
+            "ItemsControl ItemsSource=\\\"\\{Binding RightSeatHand\\.Cards\\}\\\"[\\s\\S]*?ItemContainerStyle=\\\"\\{StaticResource OverlappedVerticalHandItemStyle\\}\\\"[\\s\\S]*?<StackPanel Orientation=\\\"Vertical\\\"\\s*/>",
+            RegexOptions.CultureInvariant),
+            xaml);
+        Assert.Matches(new Regex(
+            "ItemsControl ItemsSource=\\\"\\{Binding BottomSeatHand\\.Cards\\}\\\"[\\s\\S]*?ItemContainerStyle=\\\"\\{StaticResource OverlappedHorizontalHandItemStyle\\}\\\"",
+            RegexOptions.CultureInvariant),
+            xaml);
     }
 
     [Fact]
