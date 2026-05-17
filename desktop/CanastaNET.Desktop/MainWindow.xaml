@@ -22,11 +22,14 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <sys:Double x:Key="TopSeatCardLaneHeight">188</sys:Double>
+        <sys:Double x:Key="CentralPileSpacerWidth">20</sys:Double>
         <Thickness x:Key="DefaultHorizontalHandOverlapMargin">0,0,-90,0</Thickness>
         <Thickness x:Key="CompactHorizontalHandOverlapMargin">0,0,-78,0</Thickness>
         <Thickness x:Key="DefaultVerticalHandOverlapMargin">0,0,0,-136</Thickness>
         <Thickness x:Key="CompactVerticalHandOverlapMargin">0,0,0,-120</Thickness>
         <Thickness x:Key="VerticalHandScrollPadding">0,0,0,92</Thickness>
+        <Thickness x:Key="TopSeatMargin">28,10,28,16</Thickness>
+        <Thickness x:Key="BottomSeatMargin">28,16,28,0</Thickness>
 
         <Style x:Key="FadeInBorderStyle" TargetType="Border">
             <Setter Property="Opacity" Value="0" />
@@ -387,7 +390,7 @@
 
                 <Border Grid.Row="0"
                         Grid.Column="2"
-                        Margin="28,10,28,16">
+                        Margin="{StaticResource TopSeatMargin}">
                     <Border.Style>
                         <Style BasedOn="{StaticResource SeatPanelStyle}" TargetType="Border">
                             <Setter Property="Visibility" Value="Visible" />
@@ -549,7 +552,7 @@
                                 <Grid Margin="0,6,0,0">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="20" />
+                                        <ColumnDefinition Width="{StaticResource CentralPileSpacerWidth}" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
 
@@ -817,7 +820,7 @@
 
                 <Border Grid.Row="2"
                         Grid.Column="2"
-                        Margin="28,16,28,0">
+                        Margin="{StaticResource BottomSeatMargin}">
                     <Border.Style>
                         <Style BasedOn="{StaticResource SeatPanelStyle}" TargetType="Border" />
                     </Border.Style>
