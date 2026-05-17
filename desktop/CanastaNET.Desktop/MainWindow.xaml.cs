@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using CanastaNET.Desktop.Core;
@@ -14,18 +16,37 @@ public partial class MainWindow : Window
         DataContext = workspace;
     }
 
-    private void NavigateToTab_Click(object sender, RoutedEventArgs e)
+    private void StartPreset_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not MenuItem { Tag: string tag } || !int.TryParse(tag, out var selectedIndex))
+        if (sender is not MenuItem { Tag: string presetName })
         {
             return;
         }
 
-        if (selectedIndex < 0 || selectedIndex >= WorkspaceTabs.Items.Count)
+        workspace.SelectedSetupPresetName = presetName;
+
+        if (workspace.ApplySetupPresetCommand.CanExecute(null))
         {
-            return;
+            workspace.ApplySetupPresetCommand.Execute(null);
         }
 
-        WorkspaceTabs.SelectedIndex = selectedIndex;
+        if (workspace.StartMatchCommand.CanExecute(null))
+        {
+            workspace.StartMatchCommand.Execute(null);
+        }
+    }
+
+    private void ShowRulesHelp_Click(object sender, RoutedEventArgs e)
+    {
+        var rulesHelpText = string.Join(
+            Environment.NewLine + Environment.NewLine,
+            workspace.RulesHelpLines.Select((line, index) => $"{index + 1}. {line}"));
+
+        MessageBox.Show(
+            this,
+            rulesHelpText,
+            "Quick rules help",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
     }
 }

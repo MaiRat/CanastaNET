@@ -66,8 +66,5 @@
             <Setter Property="Padding" Value="8,4" />
         </Style>
 
-        <Style TargetType="TabItem">
-            <Setter Property="Padding" Value="14,8" />
-        </Style>
     </Application.Resources>
 </Application>

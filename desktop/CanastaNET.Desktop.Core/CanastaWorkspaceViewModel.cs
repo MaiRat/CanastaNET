@@ -215,6 +215,23 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
 
     public IReadOnlyList<PlayerHandViewModel> WaitingPlayerHands { get; private set; } = [];
 
+    public PlayerHandViewModel? BottomSeatHand => GetSeatHand(offset: 0);
+
+    public PlayerHandViewModel? RightSeatHand => PlayerHands.Count >= 3
+        ? GetSeatHand(offset: 1)
+        : null;
+
+    public PlayerHandViewModel? TopSeatHand => PlayerHands.Count switch
+    {
+        2 => GetSeatHand(offset: 1),
+        >= 3 => GetSeatHand(offset: 2),
+        _ => null
+    };
+
+    public PlayerHandViewModel? LeftSeatHand => PlayerHands.Count >= 4
+        ? GetSeatHand(offset: 3)
+        : null;
+
     public IReadOnlyList<TeamMeldsViewModel> TeamMelds { get; private set; } = [];
 
     public DiscardPileViewModel DiscardPile { get; private set; } = DiscardPileViewModel.Empty;
@@ -427,6 +444,10 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
 
         WaitingPlayerHands = PlayerHands.Where(player => !player.IsCurrentPlayer).ToArray();
         OnPropertyChanged(nameof(WaitingPlayerHands));
+        OnPropertyChanged(nameof(BottomSeatHand));
+        OnPropertyChanged(nameof(RightSeatHand));
+        OnPropertyChanged(nameof(TopSeatHand));
+        OnPropertyChanged(nameof(LeftSeatHand));
 
         TeamMelds = snapshot.CurrentRound.Teams
             .Select(team => TeamMeldsViewModel.Create(team, snapshot.CurrentRound.Players))
@@ -453,6 +474,20 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
         return currentHand is null
             ? []
             : currentHand.Cards.Where(card => card.IsSelected).Select(card => card.InstanceId).ToList();
+    }
+
+    private PlayerHandViewModel? GetSeatHand(int offset)
+    {
+        if (PlayerHands.Count == 0)
+        {
+            return null;
+        }
+
+        var currentPlayerIndex = PlayerHands
+            .Select((player, index) => new { player, index })
+            .FirstOrDefault(entry => entry.player.IsCurrentPlayer)?.index ?? 0;
+
+        return PlayerHands[(currentPlayerIndex + offset) % PlayerHands.Count];
     }
 
     private void RaiseCommandCanExecuteChanged()

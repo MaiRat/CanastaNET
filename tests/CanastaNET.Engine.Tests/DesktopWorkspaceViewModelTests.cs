@@ -184,4 +184,37 @@ public class DesktopWorkspaceViewModelTests
         Assert.False(workspace.ShowDeckRibbons);
         Assert.True(workspace.UseCompactCardSpacing);
     }
+
+    [Fact]
+    public void TableSeats_PositionPlayersClockwiseAroundTheTable()
+    {
+        var workspace = new CanastaWorkspaceViewModel();
+        var currentPlayerIndex = workspace.PlayerHands
+            .Select((hand, index) => new { hand, index })
+            .Single(entry => entry.hand.IsCurrentPlayer)
+            .index;
+
+        Assert.Same(workspace.CurrentPlayerHand, workspace.BottomSeatHand);
+        Assert.Equal(workspace.PlayerHands[(currentPlayerIndex + 1) % workspace.PlayerHands.Count].Name, workspace.RightSeatHand!.Name);
+        Assert.Equal(workspace.PlayerHands[(currentPlayerIndex + 2) % workspace.PlayerHands.Count].Name, workspace.TopSeatHand!.Name);
+        Assert.Equal(workspace.PlayerHands[(currentPlayerIndex + 3) % workspace.PlayerHands.Count].Name, workspace.LeftSeatHand!.Name);
+    }
+
+    [Fact]
+    public void TableSeats_HideSideSeats_ForTwoPlayerMatches()
+    {
+        var workspace = new CanastaWorkspaceViewModel
+        {
+            SelectedSetupPresetName = "Quick duo practice"
+        };
+
+        workspace.ApplySetupPresetCommand.Execute(null);
+        workspace.StartMatchCommand.Execute(null);
+
+        Assert.Equal(2, workspace.PlayerHands.Count);
+        Assert.Same(workspace.CurrentPlayerHand, workspace.BottomSeatHand);
+        Assert.NotNull(workspace.TopSeatHand);
+        Assert.Null(workspace.LeftSeatHand);
+        Assert.Null(workspace.RightSeatHand);
+    }
 }
