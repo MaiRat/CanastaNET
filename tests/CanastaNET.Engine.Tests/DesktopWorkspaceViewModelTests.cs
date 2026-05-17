@@ -1,5 +1,6 @@
 using CanastaNET.Desktop.Core;
 using CanastaNET.Engine;
+using System.Text.RegularExpressions;
 
 namespace CanastaNET.Engine.Tests;
 
@@ -216,5 +217,39 @@ public class DesktopWorkspaceViewModelTests
         Assert.NotNull(workspace.TopSeatHand);
         Assert.Null(workspace.LeftSeatHand);
         Assert.Null(workspace.RightSeatHand);
+    }
+
+    [Fact]
+    public void MainWindowXaml_UsesOnlyValidHexColorTokenLengths()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var mainWindowXamlPath = Path.Combine(repositoryRoot, "desktop", "CanastaNET.Desktop", "MainWindow.xaml");
+
+        Assert.True(File.Exists(mainWindowXamlPath), $"Expected desktop XAML at {mainWindowXamlPath}.");
+
+        var xaml = File.ReadAllText(mainWindowXamlPath);
+        var colorTokens = Regex.Matches(xaml, @"#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})\b")
+            .Select(match => match.Value)
+            .ToArray();
+        var invalidColorTokens = Regex.Matches(xaml, @"#[0-9A-Fa-f]+\b")
+            .Select(match => match.Value)
+            .Except(colorTokens, StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.NotEmpty(colorTokens);
+        Assert.Empty(invalidColorTokens);
+    }
+
+    private static string FindRepositoryRoot()
+    {
+        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
+        {
+            if (File.Exists(Path.Combine(directory.FullName, "CanastaNET.slnx")))
+            {
+                return directory.FullName;
+            }
+        }
+
+        throw new InvalidOperationException("Could not locate the repository root from the test output directory.");
     }
 }
