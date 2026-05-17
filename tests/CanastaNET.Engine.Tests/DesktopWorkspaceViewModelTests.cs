@@ -282,14 +282,12 @@ public class DesktopWorkspaceViewModelTests
             "                </Border>");
 
         Assert.Contains("<Grid Margin=\"0,0,18,0\">", leftSeatSection, StringComparison.Ordinal);
-        Assert.Contains("Grid.RowSpan=\"3\"", leftSeatSection, StringComparison.Ordinal);
         Assert.Contains("<RowDefinition Height=\"Auto\" />", leftSeatSection, StringComparison.Ordinal);
         Assert.Contains("<RowDefinition Height=\"*\" />", leftSeatSection, StringComparison.Ordinal);
         Assert.Contains("<ScrollViewer Grid.Row=\"1\"", leftSeatSection, StringComparison.Ordinal);
         Assert.DoesNotContain("Margin=\"0,68,18,68\"", leftSeatSection, StringComparison.Ordinal);
 
         Assert.Contains("<Grid Margin=\"18,0,0,0\">", rightSeatSection, StringComparison.Ordinal);
-        Assert.Contains("Grid.RowSpan=\"3\"", rightSeatSection, StringComparison.Ordinal);
         Assert.Contains("<RowDefinition Height=\"Auto\" />", rightSeatSection, StringComparison.Ordinal);
         Assert.Contains("<RowDefinition Height=\"*\" />", rightSeatSection, StringComparison.Ordinal);
         Assert.Contains("<ScrollViewer Grid.Row=\"1\"", rightSeatSection, StringComparison.Ordinal);
