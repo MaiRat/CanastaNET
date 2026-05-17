@@ -92,7 +92,7 @@ CanastaNET is a .NET/C# Canasta project with a Canasta game engine. The reposito
 
 - The WPF shell now keeps the entire desktop focused on a single felt-table layout, with the four players arranged around the table and no tabbed navigation.
 - Playing cards are rendered with dependency-free WPF templates (suit glyphs, accent colors, point badges, deck ribbons, and a smaller default footprint for tighter table layouts).
-- Hand cards now stay fully visible around the table by wrapping responsively as the window size changes, with the side seats flowing vertically into additional columns when needed, minimal seat-name hints, and the stock/discard piles grouped in a distinct center stage without extra summary text.
+- Hand cards now use a fixed card size and stay in a single overlapped row or column around the table, with overlap tightening as the window size changes, minimal seat-name hints, and the stock/discard piles grouped in a distinct center stage without extra summary text.
 - No additional third-party/NuGet UI package was added for the card refresh because modern maintained WPF playing-card-specific packages are limited; the upgraded artwork stays within the existing project dependencies.
 
 ### Manual verification checklist
@@ -101,7 +101,7 @@ On a Windows machine, launch the desktop app and verify:
 
 - the top menu supports file, match preset, settings, and help actions with high-contrast colors and without introducing any persistent side panels or tabs
 - the desktop opens directly onto the single table surface, with the active hand at the bottom and the other players arranged on the top, left, and right edges when present
-- the player hands stay fully visible with responsive wrapping as the window size changes, with left/right hands stacking vertically and flowing into extra columns when needed, and only minimal player-name hints near each hand
+- the player hands keep a fixed card size and stay in a single overlapped row or column as the window size changes, with only minimal player-name hints near each hand
 - the table keeps a concise legal-next-action prompt and current feedback visible without pulling focus away from the play area
 - match presets, snapshot actions, and card-view settings remain reachable from the menu while the table stays fully visible
 - Ctrl+N / Ctrl+S / Ctrl+O / Ctrl+D trigger the expected start, save, load, and draw workflows

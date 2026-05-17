@@ -21,18 +21,15 @@
     </Window.InputBindings>
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-        <sys:Double x:Key="DefaultCardScale">0.92</sys:Double>
-        <sys:Double x:Key="HorizontalHandCardScale">0.84</sys:Double>
-        <sys:Double x:Key="VerticalHandCardScale">0.8</sys:Double>
         <sys:Double x:Key="TopSeatCardLaneHeight">168</sys:Double>
         <sys:Double x:Key="StockPileWidth">102</sys:Double>
         <sys:Double x:Key="StockPileHeight">154</sys:Double>
         <GridLength x:Key="CentralPileSpacerWidth">20</GridLength>
         <GridLength x:Key="SideSeatColumnWidth">220</GridLength>
-        <Thickness x:Key="DefaultHorizontalHandOverlapMargin">0,0,-104,0</Thickness>
+        <Thickness x:Key="DefaultHorizontalHandOverlapMargin">0,0,-84,0</Thickness>
         <Thickness x:Key="CompactHorizontalHandOverlapMargin">0,0,-92,0</Thickness>
-        <Thickness x:Key="DefaultVerticalHandOverlapMargin">0,0,0,-150</Thickness>
-        <Thickness x:Key="CompactVerticalHandOverlapMargin">0,0,0,-136</Thickness>
+        <Thickness x:Key="DefaultVerticalHandOverlapMargin">0,0,0,-132</Thickness>
+        <Thickness x:Key="CompactVerticalHandOverlapMargin">0,0,0,-140</Thickness>
         <Thickness x:Key="VerticalHandScrollPadding">0,0,0,76</Thickness>
         <Thickness x:Key="TopSeatMargin">14,6,14,8</Thickness>
         <Thickness x:Key="BottomSeatMargin">14,8,14,0</Thickness>
@@ -61,23 +58,17 @@
                           Color="#B0000000" />
 
         <Style x:Key="CardShellStyle" TargetType="Border">
-            <Setter Property="Width" Value="108" />
-            <Setter Property="Margin" Value="0,0,6,6" />
+            <Setter Property="Width" Value="102" />
+            <Setter Property="Height" Value="154" />
+            <Setter Property="Margin" Value="0,0,4,4" />
             <Setter Property="Padding" Value="0" />
             <Setter Property="CornerRadius" Value="10" />
             <Setter Property="BorderThickness" Value="1.4" />
             <Setter Property="Effect" Value="{StaticResource CardShadowEffect}" />
-            <Setter Property="LayoutTransform">
-                <Setter.Value>
-                    <ScaleTransform ScaleX="{DynamicResource DefaultCardScale}"
-                                    ScaleY="{DynamicResource DefaultCardScale}" />
-                </Setter.Value>
-            </Setter>
             <Setter Property="SnapsToDevicePixels" Value="True" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding DataContext.UseCompactCardSpacing, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                    <Setter Property="Width" Value="96" />
-                    <Setter Property="Margin" Value="0,0,4,4" />
+                    <Setter Property="Margin" Value="0,0,2,2" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -89,12 +80,6 @@
 
         <Style x:Key="OverlappedHorizontalHandItemStyle" TargetType="ContentPresenter">
             <Setter Property="Margin" Value="{DynamicResource DefaultHorizontalHandOverlapMargin}" />
-            <Setter Property="LayoutTransform">
-                <Setter.Value>
-                    <ScaleTransform ScaleX="{DynamicResource HorizontalHandCardScale}"
-                                    ScaleY="{DynamicResource HorizontalHandCardScale}" />
-                </Setter.Value>
-            </Setter>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding DataContext.UseCompactCardSpacing, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
                     <Setter Property="Margin" Value="{DynamicResource CompactHorizontalHandOverlapMargin}" />
@@ -104,12 +89,6 @@
 
         <Style x:Key="OverlappedVerticalHandItemStyle" TargetType="ContentPresenter">
             <Setter Property="Margin" Value="{DynamicResource DefaultVerticalHandOverlapMargin}" />
-            <Setter Property="LayoutTransform">
-                <Setter.Value>
-                    <ScaleTransform ScaleX="{DynamicResource VerticalHandCardScale}"
-                                    ScaleY="{DynamicResource VerticalHandCardScale}" />
-                </Setter.Value>
-            </Setter>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding DataContext.UseCompactCardSpacing, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
                     <Setter Property="Margin" Value="{DynamicResource CompactVerticalHandOverlapMargin}" />
@@ -421,13 +400,15 @@
                                     Foreground="{StaticResource MutedTextBrush}"
                                     Text="{Binding TopSeatHand.Name}" />
                          <ItemsControl ItemsSource="{Binding TopSeatHand.Cards}"
-                                       Margin="0,0,0,4">
+                                       HorizontalAlignment="Center"
+                                       ItemContainerStyle="{StaticResource OverlappedHorizontalHandItemStyle}"
+                                        Margin="0,0,0,4">
                              <ItemsControl.ItemsPanel>
-                                 <ItemsPanelTemplate>
-                                     <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" />
-                                 </ItemsPanelTemplate>
-                             </ItemsControl.ItemsPanel>
-                             <ItemsControl.ItemTemplate>
+                                  <ItemsPanelTemplate>
+                                      <StackPanel Orientation="Horizontal" />
+                                  </ItemsPanelTemplate>
+                              </ItemsControl.ItemsPanel>
+                              <ItemsControl.ItemTemplate>
                                  <StaticResource ResourceKey="DisplayCardTemplate" />
                              </ItemsControl.ItemTemplate>
                          </ItemsControl>
@@ -457,14 +438,15 @@
                                     Foreground="{StaticResource MutedTextBrush}"
                                     Text="{Binding LeftSeatHand.Name}" />
                          <ItemsControl Grid.Row="1"
-                                       Margin="0,4,0,0"
-                                       ItemsSource="{Binding LeftSeatHand.Cards}">
-                             <ItemsControl.ItemsPanel>
-                                 <ItemsPanelTemplate>
-                                     <WrapPanel Orientation="Vertical" />
-                                 </ItemsPanelTemplate>
-                             </ItemsControl.ItemsPanel>
-                             <ItemsControl.ItemTemplate>
+                                       ItemContainerStyle="{StaticResource OverlappedVerticalHandItemStyle}"
+                                        Margin="0,4,0,0"
+                                        ItemsSource="{Binding LeftSeatHand.Cards}">
+                              <ItemsControl.ItemsPanel>
+                                  <ItemsPanelTemplate>
+                                      <StackPanel Orientation="Vertical" />
+                                  </ItemsPanelTemplate>
+                              </ItemsControl.ItemsPanel>
+                              <ItemsControl.ItemTemplate>
                                  <StaticResource ResourceKey="DisplayCardTemplate" />
                              </ItemsControl.ItemTemplate>
                          </ItemsControl>
@@ -572,14 +554,15 @@
                                     Foreground="{StaticResource MutedTextBrush}"
                                     Text="{Binding RightSeatHand.Name}" />
                          <ItemsControl Grid.Row="1"
-                                       Margin="0,4,0,0"
-                                       ItemsSource="{Binding RightSeatHand.Cards}">
-                             <ItemsControl.ItemsPanel>
-                                 <ItemsPanelTemplate>
-                                     <WrapPanel Orientation="Vertical" />
-                                 </ItemsPanelTemplate>
-                             </ItemsControl.ItemsPanel>
-                             <ItemsControl.ItemTemplate>
+                                       ItemContainerStyle="{StaticResource OverlappedVerticalHandItemStyle}"
+                                        Margin="0,4,0,0"
+                                        ItemsSource="{Binding RightSeatHand.Cards}">
+                              <ItemsControl.ItemsPanel>
+                                  <ItemsPanelTemplate>
+                                      <StackPanel Orientation="Vertical" />
+                                  </ItemsPanelTemplate>
+                              </ItemsControl.ItemsPanel>
+                              <ItemsControl.ItemTemplate>
                                  <StaticResource ResourceKey="DisplayCardTemplate" />
                              </ItemsControl.ItemTemplate>
                          </ItemsControl>
@@ -652,13 +635,15 @@
                                          automation:AutomationProperties.Name="Start the next round" />
                              </WrapPanel>
                          </StackPanel>
-                         <ItemsControl ItemsSource="{Binding BottomSeatHand.Cards}">
-                             <ItemsControl.ItemsPanel>
-                                 <ItemsPanelTemplate>
-                                     <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center" />
-                                 </ItemsPanelTemplate>
-                             </ItemsControl.ItemsPanel>
-                             <ItemsControl.ItemTemplate>
+                          <ItemsControl ItemsSource="{Binding BottomSeatHand.Cards}"
+                                        HorizontalAlignment="Center"
+                                        ItemContainerStyle="{StaticResource OverlappedHorizontalHandItemStyle}">
+                              <ItemsControl.ItemsPanel>
+                                  <ItemsPanelTemplate>
+                                      <StackPanel Orientation="Horizontal" />
+                                  </ItemsPanelTemplate>
+                              </ItemsControl.ItemsPanel>
+                              <ItemsControl.ItemTemplate>
                                  <StaticResource ResourceKey="PlayableCardTemplate" />
                              </ItemsControl.ItemTemplate>
                          </ItemsControl>

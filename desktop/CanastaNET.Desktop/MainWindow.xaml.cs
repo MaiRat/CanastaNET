@@ -71,18 +71,13 @@ public partial class MainWindow : Window
     {
         var widthRatio = NormalizeDimension(ActualWidth, MinWidth, MaxResponsiveWidth);
         var heightRatio = NormalizeDimension(ActualHeight, MinHeight, MaxResponsiveHeight);
-        var smallerViewportRatio = Math.Min(widthRatio, heightRatio);
-
-        Resources["DefaultCardScale"] = Interpolate(0.88d, 0.92d, smallerViewportRatio);
-        Resources["HorizontalHandCardScale"] = Interpolate(0.8d, 0.84d, widthRatio);
-        Resources["VerticalHandCardScale"] = Interpolate(0.76d, 0.8d, heightRatio);
         Resources["TopSeatCardLaneHeight"] = Interpolate(152d, 168d, heightRatio);
         Resources["SideSeatColumnWidth"] = new GridLength(Interpolate(196d, 220d, widthRatio));
 
-        Resources["DefaultHorizontalHandOverlapMargin"] = new Thickness(0d, 0d, Interpolate(-120d, -104d, widthRatio), 0d);
-        Resources["CompactHorizontalHandOverlapMargin"] = new Thickness(0d, 0d, Interpolate(-106d, -92d, widthRatio), 0d);
-        Resources["DefaultVerticalHandOverlapMargin"] = new Thickness(0d, 0d, 0d, Interpolate(-162d, -150d, heightRatio));
-        Resources["CompactVerticalHandOverlapMargin"] = new Thickness(0d, 0d, 0d, Interpolate(-146d, -136d, heightRatio));
+        Resources["DefaultHorizontalHandOverlapMargin"] = new Thickness(0d, 0d, Interpolate(-92d, -84d, widthRatio), 0d);
+        Resources["CompactHorizontalHandOverlapMargin"] = new Thickness(0d, 0d, Interpolate(-100d, -92d, widthRatio), 0d);
+        Resources["DefaultVerticalHandOverlapMargin"] = new Thickness(0d, 0d, 0d, Interpolate(-140d, -132d, heightRatio));
+        Resources["CompactVerticalHandOverlapMargin"] = new Thickness(0d, 0d, 0d, Interpolate(-148d, -140d, heightRatio));
         Resources["VerticalHandScrollPadding"] = new Thickness(0d, 0d, 0d, Interpolate(68d, 76d, heightRatio));
 
         var seatSideMargin = Interpolate(8d, 14d, widthRatio);
