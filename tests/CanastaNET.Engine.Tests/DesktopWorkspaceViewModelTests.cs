@@ -266,6 +266,36 @@ public class DesktopWorkspaceViewModelTests
     }
 
     [Fact]
+    public void MainWindowXaml_ExpandsSideSeatHandsVertically()
+    {
+        var xaml = File.ReadAllText(GetMainWindowXamlPath());
+
+        Assert.Matches(new Regex(
+            "Grid.Row=\\\"1\\\"[\\s\\S]*?Grid.Column=\\\"0\\\"[\\s\\S]*?<Grid Margin=\\\"0,0,18,0\\\">[\\s\\S]*?<RowDefinition Height=\\\"Auto\\\" />[\\s\\S]*?<RowDefinition Height=\\\"\\*\\\" />[\\s\\S]*?<ScrollViewer Grid.Row=\\\"1\\\"",
+            RegexOptions.CultureInvariant),
+            xaml);
+        Assert.Matches(new Regex(
+            "Grid.Row=\\\"1\\\"[\\s\\S]*?Grid.Column=\\\"4\\\"[\\s\\S]*?<Grid Margin=\\\"18,0,0,0\\\">[\\s\\S]*?<RowDefinition Height=\\\"Auto\\\" />[\\s\\S]*?<RowDefinition Height=\\\"\\*\\\" />[\\s\\S]*?<ScrollViewer Grid.Row=\\\"1\\\"",
+            RegexOptions.CultureInvariant),
+            xaml);
+    }
+
+    [Fact]
+    public void AppXaml_UsesHighContrastMenuColors()
+    {
+        var xaml = File.ReadAllText(GetAppXamlPath());
+
+        Assert.Contains("x:Key=\"MenuBarBackgroundColor\">#FF203244</Color>", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Key=\"MenuPopupBackgroundColor\">#FFF7FBFF</Color>", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Key=\"MenuPopupTextColor\">#FF17212B</Color>", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Setter Property=\"Background\" Value=\"{StaticResource MenuBarBackgroundBrush}\" />", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Setter Property=\"Foreground\" Value=\"{StaticResource MenuPopupTextBrush}\" />", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Trigger Property=\"Role\" Value=\"TopLevelHeader\">", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Trigger Property=\"IsHighlighted\" Value=\"True\">", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Trigger Property=\"IsEnabled\" Value=\"False\">", xaml, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void MainWindowXaml_CentersStockAndDiscardPilesTogether()
     {
         var xaml = File.ReadAllText(GetMainWindowXamlPath());
@@ -281,6 +311,12 @@ public class DesktopWorkspaceViewModelTests
     {
         var repositoryRoot = FindRepositoryRoot();
         return Path.Combine(repositoryRoot, "desktop", "CanastaNET.Desktop", "MainWindow.xaml");
+    }
+
+    private static string GetAppXamlPath()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        return Path.Combine(repositoryRoot, "desktop", "CanastaNET.Desktop", "App.xaml");
     }
 
     private static string FindRepositoryRoot()

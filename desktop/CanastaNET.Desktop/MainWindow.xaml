@@ -313,9 +313,7 @@
     </Window.Resources>
 
     <DockPanel>
-        <Menu DockPanel.Dock="Top"
-              Background="#102B3D52"
-              Foreground="{StaticResource PrimaryTextBrush}">
+        <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
                 <MenuItem Header="_New match" Command="{Binding StartMatchCommand}" InputGestureText="Ctrl+N" />
                 <Separator />
@@ -435,7 +433,11 @@
                             </Style.Triggers>
                         </Style>
                     </Border.Style>
-                    <DockPanel LastChildFill="True" Margin="0,68,18,68">
+                    <Grid Margin="0,0,18,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
                         <StackPanel DockPanel.Dock="Top">
                             <TextBlock FontSize="18"
                                        FontWeight="SemiBold"
@@ -444,9 +446,10 @@
                                        Foreground="{StaticResource MutedTextBrush}"
                                        Text="{Binding LeftSeatHand.CardCount, StringFormat={}{0} cards}" />
                         </StackPanel>
-                        <ScrollViewer Margin="0,12,0,0"
-                                       VerticalScrollBarVisibility="Auto"
-                                       HorizontalScrollBarVisibility="Disabled">
+                        <ScrollViewer Grid.Row="1"
+                                        Margin="0,12,0,0"
+                                        VerticalScrollBarVisibility="Auto"
+                                        HorizontalScrollBarVisibility="Disabled">
                             <ItemsControl ItemsSource="{Binding LeftSeatHand.Cards}"
                                           Margin="{StaticResource VerticalHandScrollPadding}"
                                           ItemContainerStyle="{StaticResource OverlappedVerticalHandItemStyle}">
@@ -460,7 +463,7 @@
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </ScrollViewer>
-                    </DockPanel>
+                    </Grid>
                 </Border>
 
                 <Border Grid.Row="1"
@@ -784,7 +787,11 @@
                             </Style.Triggers>
                         </Style>
                     </Border.Style>
-                    <DockPanel LastChildFill="True" Margin="18,68,0,68">
+                    <Grid Margin="18,0,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
                         <StackPanel DockPanel.Dock="Top">
                             <TextBlock FontSize="18"
                                        FontWeight="SemiBold"
@@ -793,9 +800,10 @@
                                        Foreground="{StaticResource MutedTextBrush}"
                                        Text="{Binding RightSeatHand.CardCount, StringFormat={}{0} cards}" />
                         </StackPanel>
-                        <ScrollViewer Margin="0,12,0,0"
-                                       VerticalScrollBarVisibility="Auto"
-                                       HorizontalScrollBarVisibility="Disabled">
+                        <ScrollViewer Grid.Row="1"
+                                        Margin="0,12,0,0"
+                                        VerticalScrollBarVisibility="Auto"
+                                        HorizontalScrollBarVisibility="Disabled">
                             <ItemsControl ItemsSource="{Binding RightSeatHand.Cards}"
                                           Margin="{StaticResource VerticalHandScrollPadding}"
                                           ItemContainerStyle="{StaticResource OverlappedVerticalHandItemStyle}">
@@ -809,7 +817,7 @@
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </ScrollViewer>
-                    </DockPanel>
+                    </Grid>
                 </Border>
 
                 <Border Grid.Row="2"

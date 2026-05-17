@@ -99,7 +99,7 @@ CanastaNET is a .NET/C# Canasta project with a Canasta game engine. The reposito
 
 On a Windows machine, launch the desktop app and verify:
 
-- the top menu supports file, match preset, settings, and help actions without introducing any persistent side panels or tabs
+- the top menu supports file, match preset, settings, and help actions with high-contrast colors and without introducing any persistent side panels or tabs
 - the desktop opens directly onto the single table surface, with the active hand at the bottom and the other players arranged on the top, left, and right edges when present
 - the player hands overlap slightly inside the felt play area, with left/right hands stacked vertically and the top hand anchored from the bottom of its seat
 - the table keeps a concise legal-next-action prompt and current feedback visible without pulling focus away from the play area
