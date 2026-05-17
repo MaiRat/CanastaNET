@@ -92,6 +92,7 @@ CanastaNET is a .NET/C# Canasta project with a Canasta game engine. The reposito
 
 - The WPF shell now keeps the entire desktop focused on a single felt-table layout, with the four players arranged around the table and no tabbed navigation.
 - Playing cards are rendered with dependency-free WPF templates (suit glyphs, accent colors, point badges, deck ribbons, and a smaller default footprint for tighter table layouts).
+- Hand cards now overlap slightly around the table, with the side seats stacked vertically, the top seat anchored from the lower edge, and the stock/discard piles grouped in the table center for faster scanning.
 - No additional third-party/NuGet UI package was added for the card refresh because modern maintained WPF playing-card-specific packages are limited; the upgraded artwork stays within the existing project dependencies.
 
 ### Manual verification checklist
@@ -100,11 +101,13 @@ On a Windows machine, launch the desktop app and verify:
 
 - the top menu supports file, match preset, settings, and help actions without introducing any persistent side panels or tabs
 - the desktop opens directly onto the single table surface, with the active hand at the bottom and the other players arranged on the top, left, and right edges when present
+- the player hands overlap slightly inside the felt play area, with left/right hands stacked vertically and the top hand anchored from the bottom of its seat
 - the table keeps a concise legal-next-action prompt and current feedback visible without pulling focus away from the play area
 - match presets, snapshot actions, and card-view settings remain reachable from the menu while the table stays fully visible
 - Ctrl+N / Ctrl+S / Ctrl+O / Ctrl+D trigger the expected start, save, load, and draw workflows
 - the snapshot menu actions can save the current match, load it again, and populate recent-match history entries
 - the central table area reflects the current player, turn phase, stock count, discard top card, team melds, and legal commands without any tab switching
+- the stock pile and discard pile stay grouped together in the central table area for quick draw/discard scanning
 - the active hand uses the upgraded playing-card visuals and only reveals round-action buttons when they are contextually needed
 - the surrounding player seats, melds, and discard spotlight stay synchronized after each action
 - the Settings menu toggles point badges, deck ribbons, and compact card spacing across hands, melds, and discard views

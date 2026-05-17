@@ -240,6 +240,37 @@ public class DesktopWorkspaceViewModelTests
         Assert.Empty(invalidColorTokens);
     }
 
+    [Fact]
+    public void MainWindowXaml_UsesOverlappedHandsAroundTheTable()
+    {
+        var xaml = File.ReadAllText(GetMainWindowXamlPath());
+
+        Assert.Contains("x:Key=\"OverlappedHorizontalHandItemStyle\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Key=\"OverlappedVerticalHandItemStyle\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("ItemContainerStyle=\"{StaticResource OverlappedHorizontalHandItemStyle}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("ItemContainerStyle=\"{StaticResource OverlappedVerticalHandItemStyle}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("<StackPanel Orientation=\"Vertical\" />", xaml, StringComparison.Ordinal);
+        Assert.Contains("VerticalAlignment=\"Bottom\"", xaml, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MainWindowXaml_CentersStockAndDiscardPilesTogether()
+    {
+        var xaml = File.ReadAllText(GetMainWindowXamlPath());
+
+        Assert.Contains("Header=\"Central piles\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"Stock pile\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"Discard pile\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"Face-down draw pile\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Content=\"{Binding DiscardPile.TopCardVisual}\"", xaml, StringComparison.Ordinal);
+    }
+
+    private static string GetMainWindowXamlPath()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        return Path.Combine(repositoryRoot, "desktop", "CanastaNET.Desktop", "MainWindow.xaml");
+    }
+
     private static string FindRepositoryRoot()
     {
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)

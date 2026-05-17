@@ -68,6 +68,24 @@
             <Setter Property="CornerRadius" Value="18" />
         </Style>
 
+        <Style x:Key="OverlappedHorizontalHandItemStyle" TargetType="ContentPresenter">
+            <Setter Property="Margin" Value="0,0,-72,0" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.UseCompactCardSpacing, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                    <Setter Property="Margin" Value="0,0,-60,0" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="OverlappedVerticalHandItemStyle" TargetType="ContentPresenter">
+            <Setter Property="Margin" Value="0,0,0,-112" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding DataContext.UseCompactCardSpacing, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                    <Setter Property="Margin" Value="0,0,0,-98" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
         <DataTemplate x:Key="DisplayCardTemplate">
             <Border Background="{Binding SurfaceColor}"
                     BorderBrush="{Binding AccentColor}"
@@ -357,7 +375,7 @@
 
                 <Border Grid.Row="0"
                         Grid.Column="2"
-                        Margin="0,0,0,16">
+                        Margin="40,20,40,28">
                     <Border.Style>
                         <Style BasedOn="{StaticResource SeatPanelStyle}" TargetType="Border">
                             <Setter Property="Visibility" Value="Visible" />
@@ -378,18 +396,22 @@
                                        Text="{Binding TopSeatHand.CardCount, StringFormat={}{0} cards}" />
                         </DockPanel>
                         <ScrollViewer Margin="0,10,0,0"
-                                      HorizontalScrollBarVisibility="Disabled"
+                                      HorizontalScrollBarVisibility="Auto"
                                       VerticalScrollBarVisibility="Disabled">
-                            <ItemsControl ItemsSource="{Binding TopSeatHand.Cards}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <WrapPanel HorizontalAlignment="Center" />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <StaticResource ResourceKey="DisplayCardTemplate" />
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                            <Grid Height="218">
+                                <ItemsControl ItemsSource="{Binding TopSeatHand.Cards}"
+                                              VerticalAlignment="Bottom"
+                                              ItemContainerStyle="{StaticResource OverlappedHorizontalHandItemStyle}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <StaticResource ResourceKey="DisplayCardTemplate" />
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
                         </ScrollViewer>
                     </StackPanel>
                 </Border>
@@ -406,7 +428,7 @@
                             </Style.Triggers>
                         </Style>
                     </Border.Style>
-                    <DockPanel LastChildFill="True">
+                    <DockPanel LastChildFill="True" Margin="0,68,18,68">
                         <StackPanel DockPanel.Dock="Top">
                             <TextBlock FontSize="18"
                                        FontWeight="SemiBold"
@@ -416,12 +438,14 @@
                                        Text="{Binding LeftSeatHand.CardCount, StringFormat={}{0} cards}" />
                         </StackPanel>
                         <ScrollViewer Margin="0,12,0,0"
-                                      VerticalScrollBarVisibility="Auto"
-                                      HorizontalScrollBarVisibility="Disabled">
-                            <ItemsControl ItemsSource="{Binding LeftSeatHand.Cards}">
+                                       VerticalScrollBarVisibility="Auto"
+                                       HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl ItemsSource="{Binding LeftSeatHand.Cards}"
+                                          Margin="0,0,0,112"
+                                          ItemContainerStyle="{StaticResource OverlappedVerticalHandItemStyle}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <WrapPanel />
+                                        <StackPanel Orientation="Vertical" />
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
@@ -442,16 +466,17 @@
                         Style="{StaticResource FadeInBorderStyle}">
                     <ScrollViewer VerticalScrollBarVisibility="Auto"
                                   HorizontalScrollBarVisibility="Disabled">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="1.1*" />
-                                <ColumnDefinition Width="0.9*" />
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.1*" />
+                                    <ColumnDefinition Width="0.9*" />
                             </Grid.ColumnDefinitions>
 
                             <Border Grid.Row="0"
@@ -506,6 +531,79 @@
                             </Border>
 
                             <GroupBox Grid.Row="2"
+                                      Grid.ColumnSpan="2"
+                                      Margin="0,14,0,0"
+                                      Header="Central piles">
+                                <Grid Margin="4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="24" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel HorizontalAlignment="Center">
+                                        <TextBlock Margin="0,0,0,10"
+                                                   FontSize="16"
+                                                   FontWeight="SemiBold"
+                                                   Text="Stock pile" />
+                                        <Border Width="124"
+                                                Height="186"
+                                                Background="#0F000000"
+                                                BorderBrush="#24FFFFFF"
+                                                BorderThickness="1"
+                                                CornerRadius="16">
+                                            <Grid>
+                                                <Border Margin="18,18,0,0"
+                                                        Background="#1EFFFFFF"
+                                                        BorderBrush="#2FFFFFFF"
+                                                        BorderThickness="1"
+                                                        CornerRadius="16" />
+                                                <Border Margin="9,9,0,0"
+                                                        Background="#2A1C3044"
+                                                        BorderBrush="#35FFFFFF"
+                                                        BorderThickness="1"
+                                                        CornerRadius="16" />
+                                                <Border Background="#FFF7FBFF"
+                                                        BorderBrush="#FF4F9DED"
+                                                        BorderThickness="1.4"
+                                                        CornerRadius="16"
+                                                        Effect="{StaticResource CardShadowEffect}">
+                                                    <StackPanel VerticalAlignment="Center"
+                                                                HorizontalAlignment="Center">
+                                                        <TextBlock HorizontalAlignment="Center"
+                                                                   FontSize="22"
+                                                                   FontWeight="Bold"
+                                                                   Foreground="#FF4F9DED"
+                                                                   Text="Stock" />
+                                                        <TextBlock Margin="0,10,0,0"
+                                                                   HorizontalAlignment="Center"
+                                                                   FontSize="14"
+                                                                   FontWeight="SemiBold"
+                                                                   Foreground="#FF17212B"
+                                                                   Text="{Binding TableOverview.StockCount, StringFormat={}{0} cards}" />
+                                                        <TextBlock Margin="0,8,0,0"
+                                                                   HorizontalAlignment="Center"
+                                                                   Foreground="#8A17212B"
+                                                                   Text="Face-down draw pile"
+                                                                   TextWrapping="Wrap" />
+                                                    </StackPanel>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2" HorizontalAlignment="Center">
+                                        <TextBlock Margin="0,0,0,10"
+                                                   FontSize="16"
+                                                   FontWeight="SemiBold"
+                                                   Text="Discard pile" />
+                                        <ContentPresenter Content="{Binding DiscardPile.TopCardVisual}"
+                                                          ContentTemplate="{StaticResource DisplayCardTemplate}" />
+                                    </StackPanel>
+                                </Grid>
+                            </GroupBox>
+
+                            <GroupBox Grid.Row="3"
                                       Grid.Column="0"
                                       Margin="0,14,12,0"
                                       Header="Table actions"
@@ -544,31 +642,28 @@
                                 </StackPanel>
                             </GroupBox>
 
-                            <GroupBox Grid.Row="2"
+                            <GroupBox Grid.Row="3"
                                       Grid.Column="1"
                                       Margin="12,14,0,0"
                                       Header="Table state">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <ContentPresenter Content="{Binding DiscardPile.TopCardVisual}"
-                                                      ContentTemplate="{StaticResource DisplayCardTemplate}" />
-                                    <StackPanel Grid.Column="1" Margin="14,0,0,0">
-                                        <TextBlock Text="{Binding TableOverview.StockCount, StringFormat=Stock: {0} cards}" />
-                                        <TextBlock Text="{Binding TableOverview.DiscardTopCard, StringFormat=Discard top: {0}}"
-                                                   TextWrapping="Wrap" />
-                                        <TextBlock Text="{Binding DiscardPile.IsFrozen, StringFormat=Discard frozen: {0}}" />
-                                        <TextBlock Text="{Binding TableOverview.CurrentTurnMeldPoints, StringFormat=Meld points this turn: {0}}" />
-                                        <TextBlock Text="{Binding TableOverview.CompletedTurns, StringFormat=Completed turns: {0}}" />
-                                        <TextBlock Text="{Binding TableOverview.ShuffleSeed, StringFormat=Shuffle seed: {0}}"
-                                                   TextWrapping="Wrap" />
-                                    </StackPanel>
-                                </Grid>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding TableOverview.StockCount, StringFormat=Stock: {0} cards}" />
+                                    <TextBlock Margin="0,4,0,0"
+                                               Text="{Binding TableOverview.DiscardTopCard, StringFormat=Discard top: {0}}"
+                                               TextWrapping="Wrap" />
+                                    <TextBlock Margin="0,4,0,0"
+                                               Text="{Binding DiscardPile.IsFrozen, StringFormat=Discard frozen: {0}}" />
+                                    <TextBlock Margin="0,4,0,0"
+                                               Text="{Binding TableOverview.CurrentTurnMeldPoints, StringFormat=Meld points this turn: {0}}" />
+                                    <TextBlock Margin="0,4,0,0"
+                                               Text="{Binding TableOverview.CompletedTurns, StringFormat=Completed turns: {0}}" />
+                                    <TextBlock Margin="0,4,0,0"
+                                               Text="{Binding TableOverview.ShuffleSeed, StringFormat=Shuffle seed: {0}}"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
                             </GroupBox>
 
-                            <Grid Grid.Row="3"
+                            <Grid Grid.Row="4"
                                   Grid.ColumnSpan="2"
                                   Margin="0,14,0,0">
                                 <Grid.ColumnDefinitions>
@@ -684,7 +779,7 @@
                             </Style.Triggers>
                         </Style>
                     </Border.Style>
-                    <DockPanel LastChildFill="True">
+                    <DockPanel LastChildFill="True" Margin="18,68,0,68">
                         <StackPanel DockPanel.Dock="Top">
                             <TextBlock FontSize="18"
                                        FontWeight="SemiBold"
@@ -694,12 +789,14 @@
                                        Text="{Binding RightSeatHand.CardCount, StringFormat={}{0} cards}" />
                         </StackPanel>
                         <ScrollViewer Margin="0,12,0,0"
-                                      VerticalScrollBarVisibility="Auto"
-                                      HorizontalScrollBarVisibility="Disabled">
-                            <ItemsControl ItemsSource="{Binding RightSeatHand.Cards}">
+                                       VerticalScrollBarVisibility="Auto"
+                                       HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl ItemsSource="{Binding RightSeatHand.Cards}"
+                                          Margin="0,0,0,112"
+                                          ItemContainerStyle="{StaticResource OverlappedVerticalHandItemStyle}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <WrapPanel />
+                                        <StackPanel Orientation="Vertical" />
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
@@ -712,7 +809,7 @@
 
                 <Border Grid.Row="2"
                         Grid.Column="2"
-                        Margin="0,16,0,0">
+                        Margin="40,28,40,0">
                     <Border.Style>
                         <Style BasedOn="{StaticResource SeatPanelStyle}" TargetType="Border" />
                     </Border.Style>
@@ -732,12 +829,13 @@
                                        Text="{Binding BottomSeatHand.CardCount, StringFormat={}{0} cards}" />
                         </DockPanel>
                         <ScrollViewer Margin="0,12,0,0"
-                                      HorizontalScrollBarVisibility="Disabled"
+                                      HorizontalScrollBarVisibility="Auto"
                                       VerticalScrollBarVisibility="Auto">
-                            <ItemsControl ItemsSource="{Binding BottomSeatHand.Cards}">
+                            <ItemsControl ItemsSource="{Binding BottomSeatHand.Cards}"
+                                          ItemContainerStyle="{StaticResource OverlappedHorizontalHandItemStyle}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <WrapPanel />
+                                        <StackPanel Orientation="Horizontal" />
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
