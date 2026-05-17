@@ -402,7 +402,7 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
             .ToArray();
         OnPropertyChanged(nameof(PlayerHands));
 
-        CurrentPlayerHand = PlayerHands.SingleOrDefault(player => player.IsCurrentPlayer);
+        CurrentPlayerHand = PlayerHands.FirstOrDefault(player => player.IsCurrentPlayer);
         OnPropertyChanged(nameof(CurrentPlayerHand));
 
         WaitingPlayerHands = PlayerHands.Where(player => !player.IsCurrentPlayer).ToArray();

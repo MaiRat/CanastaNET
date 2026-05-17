@@ -21,6 +21,11 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (selectedIndex < 0 || selectedIndex >= WorkspaceTabs.Items.Count)
+        {
+            return;
+        }
+
         WorkspaceTabs.SelectedIndex = selectedIndex;
     }
 }

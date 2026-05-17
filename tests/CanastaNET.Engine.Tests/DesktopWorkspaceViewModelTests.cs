@@ -133,7 +133,10 @@ public class DesktopWorkspaceViewModelTests
     public void CardPresentation_ExposesStyledMetadata_ForTableArtwork()
     {
         var workspace = new CanastaWorkspaceViewModel();
-        var currentCard = workspace.CurrentPlayerHand!.Cards[0];
+        Assert.NotNull(workspace.CurrentPlayerHand);
+        Assert.NotEmpty(workspace.CurrentPlayerHand!.Cards);
+
+        var currentCard = workspace.CurrentPlayerHand.Cards.First();
         var discardTopCard = workspace.DiscardPile.TopCardVisual!;
 
         Assert.False(string.IsNullOrWhiteSpace(currentCard.RankText));
