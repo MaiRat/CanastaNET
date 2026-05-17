@@ -19,6 +19,8 @@
         <KeyBinding Key="P" Modifiers="Control" Command="{Binding ApplySetupPresetCommand}" />
     </Window.InputBindings>
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
         <Style x:Key="FadeInBorderStyle" TargetType="Border">
             <Setter Property="Opacity" Value="0" />
             <Style.Triggers>
@@ -319,51 +321,40 @@
 
         <Border DockPanel.Dock="Top"
                 Margin="16,16,16,0"
-                Padding="18"
+                Padding="16,14"
                 Background="#1AFFFFFF"
                 BorderBrush="#1FFFFFFF"
                 BorderThickness="1"
                 CornerRadius="18">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2.6*" />
-                    <ColumnDefinition Width="1.5*" />
-                    <ColumnDefinition Width="1.3*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <StackPanel>
-                    <TextBlock FontSize="30"
+                    <TextBlock FontSize="26"
                                FontWeight="SemiBold"
-                               Text="CanastaNET table lounge" />
-                    <TextBlock Margin="0,6,0,0"
-                               Foreground="{StaticResource MutedTextBrush}"
-                               Text="Upgraded navigation, table controls, and card artwork for a cleaner desktop play experience."
-                               TextWrapping="Wrap" />
+                               Text="CanastaNET" />
                 </StackPanel>
-                <StackPanel Grid.Column="1" Margin="24,0,0,0">
-                    <TextBlock FontSize="12"
-                               FontWeight="SemiBold"
-                               Foreground="{StaticResource MutedTextBrush}"
-                               Text="CURRENT PLAYER" />
+                <StackPanel Grid.Column="1" Margin="18,0,0,0">
                     <TextBlock FontSize="20"
                                FontWeight="SemiBold"
                                Text="{Binding TableOverview.CurrentPlayerName}" />
                     <TextBlock Margin="0,4,0,0"
                                Foreground="{StaticResource MutedTextBrush}"
-                               Text="{Binding TableOverview.TurnPhase, StringFormat=Turn phase: {0}}" />
+                               Text="{Binding TableOverview.TurnPhaseLabel}" />
                 </StackPanel>
                 <Border Grid.Column="2"
-                        Margin="24,0,0,0"
+                        Margin="18,0,0,0"
                         Padding="14"
                         Background="#1F4F9DED"
                         CornerRadius="14"
-                        Style="{StaticResource FadeInBorderStyle}">
+                        Style="{StaticResource FadeInBorderStyle}"
+                        Visibility="{Binding ShowNextActionPrompt, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <StackPanel>
-                        <TextBlock FontSize="12"
-                                   FontWeight="SemiBold"
-                                   Foreground="#DCEBFF"
-                                   Text="NEXT ACTION" />
-                        <TextBlock Margin="0,6,0,0"
-                                   Text="{Binding NextActionPrompt}"
+                        <TextBlock Text="{Binding NextActionPrompt}"
+                                   automation:AutomationProperties.Name="Next action prompt"
                                    TextWrapping="Wrap"
                                    automation:AutomationProperties.HelpText="Suggested next legal action for the current table state." />
                     </StackPanel>
@@ -373,7 +364,7 @@
 
         <Grid Margin="16">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="360" />
+                <ColumnDefinition Width="300" />
                 <ColumnDefinition Width="18" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
@@ -390,39 +381,62 @@
                                    automation:AutomationProperties.HelpText="Latest feedback from the workspace." />
                     </Border>
 
-                    <GroupBox Header="Onboarding presets">
+                    <GroupBox Header="Round actions"
+                              Visibility="{Binding ShowRoundActions, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <WrapPanel>
+                            <Button Command="{Binding DrawStockCommand}"
+                                    Content="_Draw stock"
+                                    Visibility="{Binding ShowDrawActions, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                    automation:AutomationProperties.Name="Draw from the stock pile" />
+                            <Button Command="{Binding DrawDiscardCommand}"
+                                    Content="Draw _discard"
+                                    Visibility="{Binding ShowDrawActions, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                    automation:AutomationProperties.Name="Draw from the discard pile" />
+                            <Button Command="{Binding MeldCommand}"
+                                    Content="_Meld selected"
+                                    Visibility="{Binding ShowMeldAction, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                    automation:AutomationProperties.Name="Meld the selected cards" />
+                            <Button Command="{Binding DiscardCommand}"
+                                    Content="D_iscard selected"
+                                    Visibility="{Binding ShowDiscardActions, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                    automation:AutomationProperties.Name="Discard the selected card" />
+                            <Button Command="{Binding EndTurnCommand}"
+                                    Content="_End turn"
+                                    Visibility="{Binding ShowDiscardActions, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                    automation:AutomationProperties.Name="End the turn by discarding the selected card" />
+                            <Button Command="{Binding NextRoundCommand}"
+                                    Content="_Next round"
+                                    Visibility="{Binding ShowNextRoundAction, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                    automation:AutomationProperties.Name="Start the next round" />
+                        </WrapPanel>
+                    </GroupBox>
+
+                    <Expander Header="Match setup"
+                              IsExpanded="False"
+                              automation:AutomationProperties.Name="Match setup section">
                         <StackPanel>
-                            <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Choose a launch preset or jump straight into the rules tab from the menu." />
                             <ComboBox Margin="0,10,0,8"
                                       ItemsSource="{Binding SetupPresets}"
                                       DisplayMemberPath="Name"
                                       SelectedValuePath="Name"
                                       SelectedValue="{Binding SelectedSetupPresetName, UpdateSourceTrigger=PropertyChanged}"
                                       automation:AutomationProperties.Name="Setup preset selector" />
-                            <TextBlock Foreground="{StaticResource MutedTextBrush}"
-                                       Text="{Binding SelectedSetupPresetDescription}"
-                                       TextWrapping="Wrap" />
-                            <Button Margin="0,12,0,0"
+                            <Button Margin="0,0,0,12"
                                     Command="{Binding ApplySetupPresetCommand}"
                                     Content="_Apply preset"
                                     automation:AutomationProperties.Name="Apply selected setup preset" />
-                        </StackPanel>
-                    </GroupBox>
-
-                    <GroupBox Header="Setup flow">
-                        <StackPanel>
-                            <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Players (comma separated)" />
+                            <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Players" />
                             <TextBox Text="{Binding Setup.PlayerNamesCsv, UpdateSourceTrigger=PropertyChanged}"
                                      automation:AutomationProperties.Name="Player names" />
 
                             <UniformGrid Columns="2" Margin="0,4,0,0">
                                 <StackPanel Margin="0,0,8,0">
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Team count" />
+                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Teams" />
                                     <TextBox Text="{Binding Setup.TeamCount, UpdateSourceTrigger=PropertyChanged}"
                                              automation:AutomationProperties.Name="Team count" />
                                 </StackPanel>
                                 <StackPanel>
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Dealer index" />
+                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Dealer" />
                                     <TextBox Text="{Binding Setup.DealerIndex, UpdateSourceTrigger=PropertyChanged}"
                                              automation:AutomationProperties.Name="Dealer index" />
                                 </StackPanel>
@@ -430,12 +444,12 @@
 
                             <UniformGrid Columns="2">
                                 <StackPanel Margin="0,0,8,0">
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Deck count" />
+                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Decks" />
                                     <TextBox Text="{Binding Setup.DeckCount, UpdateSourceTrigger=PropertyChanged}"
                                              automation:AutomationProperties.Name="Deck count" />
                                 </StackPanel>
                                 <StackPanel>
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Cards per player" />
+                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Cards" />
                                     <TextBox Text="{Binding Setup.CardsPerPlayer, UpdateSourceTrigger=PropertyChanged}"
                                              automation:AutomationProperties.Name="Cards per player" />
                                 </StackPanel>
@@ -447,12 +461,12 @@
 
                             <UniformGrid Columns="2">
                                 <StackPanel Margin="0,0,8,0">
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Opening seed" />
+                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Seed" />
                                     <TextBox Text="{Binding Setup.SeedText, UpdateSourceTrigger=PropertyChanged}"
                                              automation:AutomationProperties.Name="Opening seed" />
                                 </StackPanel>
                                 <StackPanel>
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Next-round seed" />
+                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Next" />
                                     <TextBox Text="{Binding Setup.NextRoundSeedText, UpdateSourceTrigger=PropertyChanged}"
                                              automation:AutomationProperties.Name="Next round seed" />
                                 </StackPanel>
@@ -462,39 +476,17 @@
                                     Content="_Start match"
                                     automation:AutomationProperties.Name="Start a new match" />
                         </StackPanel>
-                    </GroupBox>
+                    </Expander>
 
-                    <GroupBox Header="Round actions">
-                        <WrapPanel>
-                            <Button Command="{Binding DrawStockCommand}"
-                                    Content="_Draw stock"
-                                    automation:AutomationProperties.Name="Draw from the stock pile" />
-                            <Button Command="{Binding DrawDiscardCommand}"
-                                    Content="Draw _discard"
-                                    automation:AutomationProperties.Name="Draw from the discard pile" />
-                            <Button Command="{Binding MeldCommand}"
-                                    Content="_Meld selected"
-                                    automation:AutomationProperties.Name="Meld the selected cards" />
-                            <Button Command="{Binding DiscardCommand}"
-                                    Content="D_iscard selected"
-                                    automation:AutomationProperties.Name="Discard the selected card" />
-                            <Button Command="{Binding EndTurnCommand}"
-                                    Content="_End turn"
-                                    automation:AutomationProperties.Name="End the turn by discarding the selected card" />
-                            <Button Command="{Binding NextRoundCommand}"
-                                    Content="_Next round"
-                                    automation:AutomationProperties.Name="Start the next round" />
-                        </WrapPanel>
-                    </GroupBox>
-
-                    <GroupBox Header="Meld options and snapshots">
+                    <Expander Header="Snapshots"
+                              IsExpanded="False"
+                              automation:AutomationProperties.Name="Snapshots section">
                         <StackPanel>
-                            <TextBlock Foreground="{StaticResource MutedTextBrush}"
-                                       Text="Optional target rank for wild-card-only melds." />
-                            <ComboBox Margin="0,8,0,12"
+                            <ComboBox Margin="0,0,0,10"
                                       ItemsSource="{Binding AvailableMeldRanks}"
-                                      SelectedItem="{Binding SelectedMeldRankName, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Snapshot path" />
+                                      SelectedItem="{Binding SelectedMeldRankName, UpdateSourceTrigger=PropertyChanged}"
+                                      automation:AutomationProperties.Name="Meld rank selector"
+                                      Visibility="{Binding ShowMeldAction, Converter={StaticResource BooleanToVisibilityConverter}}" />
                             <TextBox Text="{Binding MatchFilePath, UpdateSourceTrigger=PropertyChanged}"
                                      automation:AutomationProperties.Name="Match snapshot path" />
                             <WrapPanel>
@@ -505,14 +497,6 @@
                                         Content="_Load match"
                                         automation:AutomationProperties.Name="Load a match snapshot from disk" />
                             </WrapPanel>
-                        </StackPanel>
-                    </GroupBox>
-
-                    <GroupBox Header="Recent match history">
-                        <StackPanel>
-                            <TextBlock Foreground="{StaticResource MutedTextBrush}"
-                                       Text="Recent saves stay close to the table so you can reopen a test scenario fast."
-                                       TextWrapping="Wrap" />
                             <ComboBox Margin="0,10,0,8"
                                       ItemsSource="{Binding RecentMatches}"
                                       DisplayMemberPath="DisplayText"
@@ -523,12 +507,13 @@
                                     Content="Load _recent match"
                                     automation:AutomationProperties.Name="Load selected recent match" />
                         </StackPanel>
-                    </GroupBox>
+                    </Expander>
                 </StackPanel>
             </ScrollViewer>
 
             <TabControl x:Name="WorkspaceTabs"
                         Grid.Column="2"
+                        SelectedIndex="1"
                         Background="#162434"
                         BorderThickness="0">
                 <TabItem Header="Table overview">
@@ -648,33 +633,12 @@
                                     BorderThickness="1"
                                     CornerRadius="18">
                                 <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="1.7*" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
                                     <StackPanel>
-                                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="Active hand spotlight" />
-                                        <TextBlock Margin="0,6,0,0"
-                                                   Foreground="{StaticResource MutedTextBrush}"
-                                                   Text="The current player gets a dedicated card mat with clearer selection states and richer card faces."
-                                                   TextWrapping="Wrap" />
-                                        <TextBlock Margin="0,12,0,0"
+                                        <TextBlock FontSize="24" FontWeight="SemiBold" Text="{Binding CurrentPlayerHand.Name, TargetNullValue=No active hand}" />
+                                        <TextBlock Margin="0,8,0,0"
                                                    FontSize="18"
-                                                   FontWeight="SemiBold"
-                                                   Text="{Binding CurrentPlayerHand.Header, TargetNullValue=No active hand}" />
-                                        <TextBlock Margin="0,4,0,0"
-                                                   Foreground="{StaticResource MutedTextBrush}"
-                                                   Text="{Binding CurrentPlayerHand.CardCount, StringFormat=Cards in hand: {0}}" />
-                                    </StackPanel>
-                                    <StackPanel Grid.Column="1" Margin="18,0,0,0">
-                                        <TextBlock FontSize="12"
-                                                   FontWeight="SemiBold"
-                                                   Foreground="{StaticResource MutedTextBrush}"
-                                                   Text="VIEW SETTINGS" />
-                                        <TextBlock Margin="0,6,0,0"
-                                                   Text="• Toggle point badges, deck ribbons, or compact spacing from the Settings menu." />
-                                        <TextBlock Margin="0,4,0,0"
-                                                   Text="• Selected cards glow with the command accent so meld/discard choices stand out." />
+                                                    FontWeight="SemiBold"
+                                                    Text="{Binding CurrentPlayerHand.CardCount, StringFormat={}{0} cards}" />
                                     </StackPanel>
                                 </Grid>
                             </Border>

@@ -145,6 +145,26 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
         private set => SetProperty(ref nextActionPrompt, value);
     }
 
+    public bool IsAwaitingDraw => TableOverview.TurnPhase == TurnPhase.AwaitingDraw;
+
+    public bool IsAwaitingDiscard => TableOverview.TurnPhase == TurnPhase.AwaitingDiscard;
+
+    public int SelectedCurrentPlayerCardCount => GetSelectedCurrentPlayerCardIds().Count;
+
+    public bool ShowDrawActions => !TableOverview.IsRoundComplete && IsAwaitingDraw;
+
+    public bool ShowSelectionPrompt => !TableOverview.IsRoundComplete && IsAwaitingDiscard && SelectedCurrentPlayerCardCount == 0;
+
+    public bool ShowMeldAction => !TableOverview.IsRoundComplete && IsAwaitingDiscard && SelectedCurrentPlayerCardCount > 0;
+
+    public bool ShowDiscardActions => !TableOverview.IsRoundComplete && IsAwaitingDiscard && SelectedCurrentPlayerCardCount == 1;
+
+    public bool ShowNextRoundAction => TableOverview.IsRoundComplete;
+
+    public bool ShowRoundActions => ShowDrawActions || ShowMeldAction || ShowDiscardActions || ShowNextRoundAction;
+
+    public bool ShowNextActionPrompt => ShowDrawActions || ShowSelectionPrompt || ShowMeldAction || ShowDiscardActions || ShowNextRoundAction;
+
     public bool ShowCardPointBadges
     {
         get => showCardPointBadges;
@@ -421,7 +441,7 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
 
         LegalCommands = catalog.Commands.Select(command => LegalCommandViewModel.Create(command)).ToArray();
         OnPropertyChanged(nameof(LegalCommands));
-        NextActionPrompt = CreateNextActionPrompt(catalog);
+        RefreshNextActionPrompt();
 
         SelectedMeldRankName = null;
         RaiseCommandCanExecuteChanged();
@@ -437,6 +457,17 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
 
     private void RaiseCommandCanExecuteChanged()
     {
+        RefreshNextActionPrompt();
+        OnPropertyChanged(nameof(IsAwaitingDraw));
+        OnPropertyChanged(nameof(IsAwaitingDiscard));
+        OnPropertyChanged(nameof(SelectedCurrentPlayerCardCount));
+        OnPropertyChanged(nameof(ShowDrawActions));
+        OnPropertyChanged(nameof(ShowSelectionPrompt));
+        OnPropertyChanged(nameof(ShowMeldAction));
+        OnPropertyChanged(nameof(ShowDiscardActions));
+        OnPropertyChanged(nameof(ShowNextRoundAction));
+        OnPropertyChanged(nameof(ShowRoundActions));
+        OnPropertyChanged(nameof(ShowNextActionPrompt));
         drawStockCommand.RaiseCanExecuteChanged();
         drawDiscardCommand.RaiseCanExecuteChanged();
         meldCommand.RaiseCanExecuteChanged();
@@ -447,6 +478,11 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
         saveMatchCommand.RaiseCanExecuteChanged();
         loadMatchCommand.RaiseCanExecuteChanged();
         loadRecentMatchCommand.RaiseCanExecuteChanged();
+    }
+
+    private void RefreshNextActionPrompt()
+    {
+        NextActionPrompt = CreateNextActionPrompt(TableOverview.TurnPhase, LegalCommands.Count, SelectedCurrentPlayerCardCount);
     }
 
     private static string FormatLegalCommands(RoundCommandCatalog catalog)
@@ -465,7 +501,7 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
     private void RememberRecentMatch(string path, string actionDescription)
     {
         var fullPath = Path.GetFullPath(path);
-        var updated = new[] { RecentMatchEntryViewModel.Create(fullPath, actionDescription, TableOverview.RoundNumber, TableOverview.CurrentPlayerName, TableOverview.TurnPhase) }
+        var updated = new[] { RecentMatchEntryViewModel.Create(fullPath, actionDescription, TableOverview.RoundNumber, TableOverview.CurrentPlayerName, FormatTurnPhaseLabel(TableOverview.TurnPhase)) }
             .Concat(RecentMatches.Where(entry => !string.Equals(entry.Path, fullPath, StringComparison.OrdinalIgnoreCase)))
             .Take(MaxRecentMatchCount)
             .ToArray();
@@ -475,21 +511,21 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
         SelectedRecentMatchPath = fullPath;
     }
 
-    private static string CreateNextActionPrompt(RoundCommandCatalog catalog)
+    private static string CreateNextActionPrompt(TurnPhase turnPhase, int legalCommandCount, int selectedCardCount)
     {
-        if (catalog.Commands.Count == 0)
+        if (legalCommandCount == 0)
         {
             return "No legal next action is available from the current state.";
         }
 
-        var suggestions = string.Join(", ", catalog.Commands.Take(3).Select(command => FormatCommandText(command.Command)));
-
-        return catalog.TurnPhase switch
+        return turnPhase switch
         {
-            TurnPhase.AwaitingDraw => $"Legal next actions: {suggestions}. Start the turn by drawing before attempting a meld or discard.",
-            TurnPhase.AwaitingDiscard => $"Legal next actions: {suggestions}. Finish the turn by discarding exactly one card when you are ready.",
+            TurnPhase.AwaitingDraw => "Draw from the stock or discard pile to start the turn.",
+            TurnPhase.AwaitingDiscard when selectedCardCount == 0 => "Select cards to reveal meld and discard actions.",
+            TurnPhase.AwaitingDiscard when selectedCardCount == 1 => "Discard the selected card or meld it if the play is legal.",
+            TurnPhase.AwaitingDiscard => "Meld the selected cards or keep one card selected to discard.",
             TurnPhase.Completed => "The round is complete. Review the summary and start the next round when the table is ready.",
-            _ => $"Legal next actions: {suggestions}."
+            _ => "Review the current table state to choose the next move."
         };
     }
 
@@ -502,6 +538,14 @@ public sealed class CanastaWorkspaceViewModel : ObservableObject
         GameCommandType.Meld => $"meld {string.Join(' ', command.CardInstanceIds)}",
         GameCommandType.Discard => $"discard {command.CardInstanceIds.Single()}",
         _ => command.CommandType.ToString()
+    };
+
+    internal static string FormatTurnPhaseLabel(TurnPhase turnPhase) => turnPhase switch
+    {
+        TurnPhase.AwaitingDraw => "Awaiting draw",
+        TurnPhase.AwaitingDiscard => "Awaiting discard",
+        TurnPhase.Completed => "Completed",
+        _ => turnPhase.ToString()
     };
 }
 
@@ -607,7 +651,7 @@ public sealed class TableOverviewViewModel
         currentPlayerName: string.Empty,
         currentPlayerIndex: 0,
         currentPlayerTeamIndex: 0,
-        turnPhase: string.Empty,
+        turnPhase: TurnPhase.AwaitingDraw,
         completedTurns: 0,
         stockCount: 0,
         discardTopCard: "(empty)",
@@ -621,7 +665,7 @@ public sealed class TableOverviewViewModel
         string currentPlayerName,
         int currentPlayerIndex,
         int currentPlayerTeamIndex,
-        string turnPhase,
+        TurnPhase turnPhase,
         int completedTurns,
         int stockCount,
         string discardTopCard,
@@ -652,7 +696,9 @@ public sealed class TableOverviewViewModel
 
     public int CurrentPlayerTeamIndex { get; }
 
-    public string TurnPhase { get; }
+    public TurnPhase TurnPhase { get; }
+
+    public string TurnPhaseLabel => CanastaWorkspaceViewModel.FormatTurnPhaseLabel(TurnPhase);
 
     public int CompletedTurns { get; }
 
@@ -678,7 +724,7 @@ public sealed class TableOverviewViewModel
             currentPlayer.Name,
             currentPlayer.PlayerIndex,
             currentPlayer.TeamIndex,
-            round.TurnPhase.ToString(),
+            round.TurnPhase,
             round.CompletedTurnCount,
             round.StockPile.Count,
             round.DiscardPile.Count == 0 ? "(empty)" : CardFormatter.Format(round.DiscardPile[^1]),
