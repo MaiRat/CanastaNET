@@ -240,6 +240,49 @@ public class DesktopWorkspaceViewModelTests
         Assert.Empty(invalidColorTokens);
     }
 
+    [Fact]
+    public void MainWindowXaml_UsesOverlappedHandsAroundTheTable()
+    {
+        var xaml = File.ReadAllText(GetMainWindowXamlPath());
+
+        Assert.Contains("x:Key=\"OverlappedHorizontalHandItemStyle\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("x:Key=\"OverlappedVerticalHandItemStyle\"", xaml, StringComparison.Ordinal);
+        Assert.Matches(new Regex(
+            "ItemsControl ItemsSource=\\\"\\{Binding TopSeatHand\\.Cards\\}\\\"[\\s\\S]*?VerticalAlignment=\\\"Bottom\\\"[\\s\\S]*?ItemContainerStyle=\\\"\\{StaticResource OverlappedHorizontalHandItemStyle\\}\\\"",
+            RegexOptions.CultureInvariant),
+            xaml);
+        Assert.Matches(new Regex(
+            "ItemsControl ItemsSource=\\\"\\{Binding LeftSeatHand\\.Cards\\}\\\"[\\s\\S]*?ItemContainerStyle=\\\"\\{StaticResource OverlappedVerticalHandItemStyle\\}\\\"[\\s\\S]*?<StackPanel Orientation=\\\"Vertical\\\"\\s*/>",
+            RegexOptions.CultureInvariant),
+            xaml);
+        Assert.Matches(new Regex(
+            "ItemsControl ItemsSource=\\\"\\{Binding RightSeatHand\\.Cards\\}\\\"[\\s\\S]*?ItemContainerStyle=\\\"\\{StaticResource OverlappedVerticalHandItemStyle\\}\\\"[\\s\\S]*?<StackPanel Orientation=\\\"Vertical\\\"\\s*/>",
+            RegexOptions.CultureInvariant),
+            xaml);
+        Assert.Matches(new Regex(
+            "ItemsControl ItemsSource=\\\"\\{Binding BottomSeatHand\\.Cards\\}\\\"[\\s\\S]*?ItemContainerStyle=\\\"\\{StaticResource OverlappedHorizontalHandItemStyle\\}\\\"",
+            RegexOptions.CultureInvariant),
+            xaml);
+    }
+
+    [Fact]
+    public void MainWindowXaml_CentersStockAndDiscardPilesTogether()
+    {
+        var xaml = File.ReadAllText(GetMainWindowXamlPath());
+
+        Assert.Contains("Header=\"Central piles\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"Stock pile\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"Discard pile\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"Face-down draw pile\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Content=\"{Binding DiscardPile.TopCardVisual}\"", xaml, StringComparison.Ordinal);
+    }
+
+    private static string GetMainWindowXamlPath()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        return Path.Combine(repositoryRoot, "desktop", "CanastaNET.Desktop", "MainWindow.xaml");
+    }
+
     private static string FindRepositoryRoot()
     {
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
