@@ -22,6 +22,8 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <sys:Double x:Key="TopSeatCardLaneHeight">188</sys:Double>
+        <sys:Double x:Key="StockPileWidth">108</sys:Double>
+        <sys:Double x:Key="StockPileHeight">162</sys:Double>
         <GridLength x:Key="CentralPileSpacerWidth">20</GridLength>
         <Thickness x:Key="DefaultHorizontalHandOverlapMargin">0,0,-90,0</Thickness>
         <Thickness x:Key="CompactHorizontalHandOverlapMargin">0,0,-78,0</Thickness>
@@ -561,8 +563,8 @@
                                                    FontSize="12"
                                                    Foreground="{StaticResource MutedTextBrush}"
                                                    Text="Stock pile" />
-                                        <Grid Width="108"
-                                              Height="162">
+                                        <Grid Width="{StaticResource StockPileWidth}"
+                                              Height="{StaticResource StockPileHeight}">
                                             <Border Margin="16,16,0,0"
                                                     Background="#1EFFFFFF"
                                                     BorderBrush="#2FFFFFFF"

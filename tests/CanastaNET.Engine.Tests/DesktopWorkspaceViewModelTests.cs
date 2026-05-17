@@ -292,6 +292,7 @@ public class DesktopWorkspaceViewModelTests
         Assert.Contains("<RowDefinition Height=\"*\" />", leftSeatSection, StringComparison.Ordinal);
         Assert.Contains("<ScrollViewer Grid.Row=\"1\"", leftSeatSection, StringComparison.Ordinal);
         Assert.Contains("FontSize=\"12\"", leftSeatSection, StringComparison.Ordinal);
+        Assert.DoesNotContain("TopSeatHand.CardCount", xaml, StringComparison.Ordinal);
         Assert.DoesNotContain("LeftSeatHand.CardCount", leftSeatSection, StringComparison.Ordinal);
         Assert.DoesNotContain("Margin=\"0,68,18,68\"", leftSeatSection, StringComparison.Ordinal);
 
@@ -301,6 +302,8 @@ public class DesktopWorkspaceViewModelTests
         Assert.Contains("<ScrollViewer Grid.Row=\"1\"", rightSeatSection, StringComparison.Ordinal);
         Assert.Contains("FontSize=\"12\"", rightSeatSection, StringComparison.Ordinal);
         Assert.DoesNotContain("RightSeatHand.CardCount", rightSeatSection, StringComparison.Ordinal);
+        Assert.DoesNotContain("BottomSeatHand.CardCount", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("BottomSeatHand.StatusText", xaml, StringComparison.Ordinal);
         Assert.DoesNotContain("Margin=\"18,68,0,68\"", rightSeatSection, StringComparison.Ordinal);
     }
 
@@ -334,10 +337,9 @@ public class DesktopWorkspaceViewModelTests
         Assert.Contains("Text=\"Face-down draw pile\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Content=\"{Binding DiscardPile.TopCardVisual}\"", xaml, StringComparison.Ordinal);
         Assert.DoesNotContain("Header=\"Central piles\"", xaml, StringComparison.Ordinal);
-        Assert.DoesNotContain("TopSeatHand.CardCount", xaml, StringComparison.Ordinal);
-        Assert.DoesNotContain("BottomSeatHand.CardCount", xaml, StringComparison.Ordinal);
-        Assert.DoesNotContain("BottomSeatHand.StatusText", xaml, StringComparison.Ordinal);
-        Assert.Contains("<Grid Width=\"108\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("<sys:Double x:Key=\"StockPileWidth\">108</sys:Double>", xaml, StringComparison.Ordinal);
+        Assert.Contains("<sys:Double x:Key=\"StockPileHeight\">162</sys:Double>", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Grid Width=\"{StaticResource StockPileWidth}\"", xaml, StringComparison.Ordinal);
     }
 
     private static string GetMainWindowXamlPath()
