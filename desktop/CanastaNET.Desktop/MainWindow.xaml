@@ -22,7 +22,7 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <sys:Double x:Key="TopSeatCardLaneHeight">188</sys:Double>
-        <sys:Double x:Key="CentralPileSpacerWidth">20</sys:Double>
+        <GridLength x:Key="CentralPileSpacerWidth">20</GridLength>
         <Thickness x:Key="DefaultHorizontalHandOverlapMargin">0,0,-90,0</Thickness>
         <Thickness x:Key="CompactHorizontalHandOverlapMargin">0,0,-78,0</Thickness>
         <Thickness x:Key="DefaultVerticalHandOverlapMargin">0,0,0,-136</Thickness>

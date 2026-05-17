@@ -249,6 +249,8 @@ public class DesktopWorkspaceViewModelTests
         Assert.Contains("x:Key=\"OverlappedVerticalHandItemStyle\"", xaml, StringComparison.Ordinal);
         Assert.Contains("<Thickness x:Key=\"DefaultHorizontalHandOverlapMargin\">0,0,-90,0</Thickness>", xaml, StringComparison.Ordinal);
         Assert.Contains("<Thickness x:Key=\"DefaultVerticalHandOverlapMargin\">0,0,0,-136</Thickness>", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Setter Property=\"Margin\" Value=\"{StaticResource DefaultHorizontalHandOverlapMargin}\" />", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Setter Property=\"Margin\" Value=\"{StaticResource DefaultVerticalHandOverlapMargin}\" />", xaml, StringComparison.Ordinal);
         Assert.Contains("<ScaleTransform ScaleX=\"0.86\" ScaleY=\"0.86\" />", xaml, StringComparison.Ordinal);
         Assert.Contains("<ScaleTransform ScaleX=\"0.82\" ScaleY=\"0.82\" />", xaml, StringComparison.Ordinal);
         Assert.Matches(new Regex(
