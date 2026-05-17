@@ -247,16 +247,20 @@ public class DesktopWorkspaceViewModelTests
 
         Assert.Contains("x:Key=\"OverlappedHorizontalHandItemStyle\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Key=\"OverlappedVerticalHandItemStyle\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("<Thickness x:Key=\"DefaultHorizontalHandOverlapMargin\">0,0,-96,0</Thickness>", xaml, StringComparison.Ordinal);
-        Assert.Contains("<Thickness x:Key=\"DefaultVerticalHandOverlapMargin\">0,0,0,-144</Thickness>", xaml, StringComparison.Ordinal);
-        Assert.Contains("<sys:Double x:Key=\"DefaultCardScale\">0.94</sys:Double>", xaml, StringComparison.Ordinal);
-        Assert.Contains("<sys:Double x:Key=\"TopSeatCardLaneHeight\">176</sys:Double>", xaml, StringComparison.Ordinal);
-        Assert.Contains("<Setter Property=\"Margin\" Value=\"{StaticResource DefaultHorizontalHandOverlapMargin}\" />", xaml, StringComparison.Ordinal);
-        Assert.Contains("<Setter Property=\"Margin\" Value=\"{StaticResource DefaultVerticalHandOverlapMargin}\" />", xaml, StringComparison.Ordinal);
-        Assert.Contains("<ScaleTransform ScaleX=\"{StaticResource DefaultCardScale}\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("ScaleY=\"{StaticResource DefaultCardScale}\" />", xaml, StringComparison.Ordinal);
-        Assert.Contains("<ScaleTransform ScaleX=\"0.86\" ScaleY=\"0.86\" />", xaml, StringComparison.Ordinal);
-        Assert.Contains("<ScaleTransform ScaleX=\"0.82\" ScaleY=\"0.82\" />", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Thickness x:Key=\"DefaultHorizontalHandOverlapMargin\">0,0,-104,0</Thickness>", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Thickness x:Key=\"DefaultVerticalHandOverlapMargin\">0,0,0,-150</Thickness>", xaml, StringComparison.Ordinal);
+        Assert.Contains("<sys:Double x:Key=\"DefaultCardScale\">0.92</sys:Double>", xaml, StringComparison.Ordinal);
+        Assert.Contains("<sys:Double x:Key=\"HorizontalHandCardScale\">0.84</sys:Double>", xaml, StringComparison.Ordinal);
+        Assert.Contains("<sys:Double x:Key=\"VerticalHandCardScale\">0.8</sys:Double>", xaml, StringComparison.Ordinal);
+        Assert.Contains("<sys:Double x:Key=\"TopSeatCardLaneHeight\">168</sys:Double>", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Setter Property=\"Margin\" Value=\"{DynamicResource DefaultHorizontalHandOverlapMargin}\" />", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Setter Property=\"Margin\" Value=\"{DynamicResource DefaultVerticalHandOverlapMargin}\" />", xaml, StringComparison.Ordinal);
+        Assert.Contains("<ScaleTransform ScaleX=\"{DynamicResource DefaultCardScale}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("ScaleY=\"{DynamicResource DefaultCardScale}\" />", xaml, StringComparison.Ordinal);
+        Assert.Contains("<ScaleTransform ScaleX=\"{DynamicResource HorizontalHandCardScale}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("ScaleY=\"{DynamicResource HorizontalHandCardScale}\" />", xaml, StringComparison.Ordinal);
+        Assert.Contains("<ScaleTransform ScaleX=\"{DynamicResource VerticalHandCardScale}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("ScaleY=\"{DynamicResource VerticalHandCardScale}\" />", xaml, StringComparison.Ordinal);
         Assert.Matches(new Regex(
             "ItemsControl ItemsSource=\\\"\\{Binding TopSeatHand\\.Cards\\}\\\"[\\s\\S]*?VerticalAlignment=\\\"Bottom\\\"[\\s\\S]*?ItemContainerStyle=\\\"\\{StaticResource OverlappedHorizontalHandItemStyle\\}\\\"",
             RegexOptions.CultureInvariant),
@@ -332,7 +336,7 @@ public class DesktopWorkspaceViewModelTests
         var xaml = File.ReadAllText(GetMainWindowXamlPath());
 
         Assert.Matches(new Regex(
-            "<Border Grid\\.Row=\\\"1\\\"[\\s\\S]*?Grid\\.Column=\\\"2\\\"[\\s\\S]*?BorderThickness=\\\"0\\\"",
+            "<Border Grid\\.Row=\\\"2\\\"[\\s\\S]*?Grid\\.ColumnSpan=\\\"2\\\"[\\s\\S]*?Background=\\\"#13263A49\\\"",
             RegexOptions.CultureInvariant),
             xaml);
         Assert.Contains("automation:AutomationProperties.Name=\"Stock pile\"", xaml, StringComparison.Ordinal);
@@ -351,12 +355,39 @@ public class DesktopWorkspaceViewModelTests
         Assert.Contains("<sys:Double x:Key=\"StockPileWidth\">102</sys:Double>", xaml, StringComparison.Ordinal);
         Assert.Contains("<sys:Double x:Key=\"StockPileHeight\">154</sys:Double>", xaml, StringComparison.Ordinal);
         Assert.Contains("<Grid Width=\"{StaticResource StockPileWidth}\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Grid Grid.Column=\"2\"", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("StringFormat=Stock", xaml, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MainWindowCodeBehind_RecalculatesResponsiveLayoutMetrics()
+    {
+        var codeBehind = File.ReadAllText(GetMainWindowCodeBehindPath());
+
+        Assert.Contains("Loaded += Window_Loaded;", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("SizeChanged += Window_SizeChanged;", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("private void UpdateResponsiveLayoutMetrics()", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("Resources[\"DefaultCardScale\"] = Interpolate(0.88d, 0.92d, smallerViewportRatio);", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("Resources[\"HorizontalHandCardScale\"] = Interpolate(0.8d, 0.84d, widthRatio);", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("Resources[\"VerticalHandCardScale\"] = Interpolate(0.76d, 0.8d, heightRatio);", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("Resources[\"DefaultHorizontalHandOverlapMargin\"] = new Thickness(0d, 0d, Interpolate(-120d, -104d, widthRatio), 0d);", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("Resources[\"DefaultVerticalHandOverlapMargin\"] = new Thickness(0d, 0d, 0d, Interpolate(-162d, -150d, heightRatio));", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("Resources[\"TopSeatMargin\"] = new Thickness(seatSideMargin, 6d, seatSideMargin, 8d);", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("Resources[\"BottomSeatMargin\"] = new Thickness(seatSideMargin, 8d, seatSideMargin, 0d);", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("Resources[\"SideSeatColumnWidth\"] = new GridLength(Interpolate(196d, 220d, widthRatio));", codeBehind, StringComparison.Ordinal);
+        Assert.Contains("private static double NormalizeDimension(double value, double minimum, double maximum)", codeBehind, StringComparison.Ordinal);
     }
 
     private static string GetMainWindowXamlPath()
     {
         var repositoryRoot = FindRepositoryRoot();
         return Path.Combine(repositoryRoot, "desktop", "CanastaNET.Desktop", "MainWindow.xaml");
+    }
+
+    private static string GetMainWindowCodeBehindPath()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        return Path.Combine(repositoryRoot, "desktop", "CanastaNET.Desktop", "MainWindow.xaml.cs");
     }
 
     private static string GetAppXamlPath()

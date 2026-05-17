@@ -21,18 +21,21 @@
     </Window.InputBindings>
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-        <sys:Double x:Key="DefaultCardScale">0.94</sys:Double>
-        <sys:Double x:Key="TopSeatCardLaneHeight">176</sys:Double>
+        <sys:Double x:Key="DefaultCardScale">0.92</sys:Double>
+        <sys:Double x:Key="HorizontalHandCardScale">0.84</sys:Double>
+        <sys:Double x:Key="VerticalHandCardScale">0.8</sys:Double>
+        <sys:Double x:Key="TopSeatCardLaneHeight">168</sys:Double>
         <sys:Double x:Key="StockPileWidth">102</sys:Double>
         <sys:Double x:Key="StockPileHeight">154</sys:Double>
         <GridLength x:Key="CentralPileSpacerWidth">20</GridLength>
-        <Thickness x:Key="DefaultHorizontalHandOverlapMargin">0,0,-96,0</Thickness>
-        <Thickness x:Key="CompactHorizontalHandOverlapMargin">0,0,-84,0</Thickness>
-        <Thickness x:Key="DefaultVerticalHandOverlapMargin">0,0,0,-144</Thickness>
-        <Thickness x:Key="CompactVerticalHandOverlapMargin">0,0,0,-128</Thickness>
-        <Thickness x:Key="VerticalHandScrollPadding">0,0,0,84</Thickness>
-        <Thickness x:Key="TopSeatMargin">24,8,24,10</Thickness>
-        <Thickness x:Key="BottomSeatMargin">24,10,24,0</Thickness>
+        <GridLength x:Key="SideSeatColumnWidth">220</GridLength>
+        <Thickness x:Key="DefaultHorizontalHandOverlapMargin">0,0,-104,0</Thickness>
+        <Thickness x:Key="CompactHorizontalHandOverlapMargin">0,0,-92,0</Thickness>
+        <Thickness x:Key="DefaultVerticalHandOverlapMargin">0,0,0,-150</Thickness>
+        <Thickness x:Key="CompactVerticalHandOverlapMargin">0,0,0,-136</Thickness>
+        <Thickness x:Key="VerticalHandScrollPadding">0,0,0,76</Thickness>
+        <Thickness x:Key="TopSeatMargin">14,6,14,8</Thickness>
+        <Thickness x:Key="BottomSeatMargin">14,8,14,0</Thickness>
 
         <Style x:Key="FadeInBorderStyle" TargetType="Border">
             <Setter Property="Opacity" Value="0" />
@@ -66,8 +69,8 @@
             <Setter Property="Effect" Value="{StaticResource CardShadowEffect}" />
             <Setter Property="LayoutTransform">
                 <Setter.Value>
-                    <ScaleTransform ScaleX="{StaticResource DefaultCardScale}"
-                                    ScaleY="{StaticResource DefaultCardScale}" />
+                    <ScaleTransform ScaleX="{DynamicResource DefaultCardScale}"
+                                    ScaleY="{DynamicResource DefaultCardScale}" />
                 </Setter.Value>
             </Setter>
             <Setter Property="SnapsToDevicePixels" Value="True" />
@@ -85,29 +88,31 @@
         </Style>
 
         <Style x:Key="OverlappedHorizontalHandItemStyle" TargetType="ContentPresenter">
-            <Setter Property="Margin" Value="{StaticResource DefaultHorizontalHandOverlapMargin}" />
+            <Setter Property="Margin" Value="{DynamicResource DefaultHorizontalHandOverlapMargin}" />
             <Setter Property="LayoutTransform">
                 <Setter.Value>
-                    <ScaleTransform ScaleX="0.86" ScaleY="0.86" />
+                    <ScaleTransform ScaleX="{DynamicResource HorizontalHandCardScale}"
+                                    ScaleY="{DynamicResource HorizontalHandCardScale}" />
                 </Setter.Value>
             </Setter>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding DataContext.UseCompactCardSpacing, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                    <Setter Property="Margin" Value="{StaticResource CompactHorizontalHandOverlapMargin}" />
+                    <Setter Property="Margin" Value="{DynamicResource CompactHorizontalHandOverlapMargin}" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
 
         <Style x:Key="OverlappedVerticalHandItemStyle" TargetType="ContentPresenter">
-            <Setter Property="Margin" Value="{StaticResource DefaultVerticalHandOverlapMargin}" />
+            <Setter Property="Margin" Value="{DynamicResource DefaultVerticalHandOverlapMargin}" />
             <Setter Property="LayoutTransform">
                 <Setter.Value>
-                    <ScaleTransform ScaleX="0.82" ScaleY="0.82" />
+                    <ScaleTransform ScaleX="{DynamicResource VerticalHandCardScale}"
+                                    ScaleY="{DynamicResource VerticalHandCardScale}" />
                 </Setter.Value>
             </Setter>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding DataContext.UseCompactCardSpacing, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                    <Setter Property="Margin" Value="{StaticResource CompactVerticalHandOverlapMargin}" />
+                    <Setter Property="Margin" Value="{DynamicResource CompactVerticalHandOverlapMargin}" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -390,16 +395,16 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="240" />
+                    <ColumnDefinition Width="{DynamicResource SideSeatColumnWidth}" />
                     <ColumnDefinition Width="20" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="20" />
-                    <ColumnDefinition Width="240" />
+                    <ColumnDefinition Width="{DynamicResource SideSeatColumnWidth}" />
                 </Grid.ColumnDefinitions>
 
                 <Border Grid.Row="0"
                         Grid.Column="2"
-                        Margin="{StaticResource TopSeatMargin}">
+                        Margin="{DynamicResource TopSeatMargin}">
                     <Border.Style>
                         <Style BasedOn="{StaticResource SeatPanelStyle}" TargetType="Border">
                             <Setter Property="Visibility" Value="Visible" />
@@ -418,7 +423,7 @@
                         <ScrollViewer
                                        HorizontalScrollBarVisibility="Auto"
                                        VerticalScrollBarVisibility="Disabled">
-                            <Grid Height="{StaticResource TopSeatCardLaneHeight}">
+                            <Grid Height="{DynamicResource TopSeatCardLaneHeight}">
                                 <ItemsControl ItemsSource="{Binding TopSeatHand.Cards}"
                                               VerticalAlignment="Bottom"
                                               ItemContainerStyle="{StaticResource OverlappedHorizontalHandItemStyle}">
@@ -463,8 +468,8 @@
                                         VerticalScrollBarVisibility="Auto"
                                         HorizontalScrollBarVisibility="Disabled">
                             <ItemsControl ItemsSource="{Binding LeftSeatHand.Cards}"
-                                          Margin="{StaticResource VerticalHandScrollPadding}"
-                                          ItemContainerStyle="{StaticResource OverlappedVerticalHandItemStyle}">
+                                           Margin="{DynamicResource VerticalHandScrollPadding}"
+                                           ItemContainerStyle="{StaticResource OverlappedVerticalHandItemStyle}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <StackPanel Orientation="Vertical" />
@@ -552,71 +557,82 @@
                                            automation:AutomationProperties.HelpText="Latest feedback from the workspace." />
                             </Border>
 
-                            <Grid Grid.Row="2"
-                                  Grid.ColumnSpan="2"
-                                  Margin="0,14,0,0"
-                                  HorizontalAlignment="Center">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="{StaticResource CentralPileSpacerWidth}" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
+                             <Border Grid.Row="2"
+                                     Grid.ColumnSpan="2"
+                                     Margin="0,14,0,0"
+                                     Padding="18,16"
+                                     Background="#13263A49"
+                                     BorderBrush="#29FFFFFF"
+                                     BorderThickness="1"
+                                     CornerRadius="20">
+                                 <Grid HorizontalAlignment="Center">
+                                     <Grid.ColumnDefinitions>
+                                         <ColumnDefinition Width="Auto" />
+                                         <ColumnDefinition Width="{StaticResource CentralPileSpacerWidth}" />
+                                         <ColumnDefinition Width="Auto" />
+                                     </Grid.ColumnDefinitions>
 
-                                <Grid Width="{StaticResource StockPileWidth}"
-                                      Height="{StaticResource StockPileHeight}"
-                                      automation:AutomationProperties.Name="Stock pile"
-                                      automation:AutomationProperties.HelpText="Face-down draw pile.">
-                                    <Border Margin="16,16,0,0"
-                                            Background="#1EFFFFFF"
-                                            BorderBrush="#2FFFFFFF"
-                                            BorderThickness="1"
-                                            CornerRadius="14" />
-                                    <Border Margin="8,8,0,0"
-                                            Background="#2A1C3044"
-                                            BorderBrush="#35FFFFFF"
-                                            BorderThickness="1"
-                                            CornerRadius="14" />
-                                    <Border Background="#FFF7FBFF"
-                                            BorderBrush="#FF4F9DED"
-                                            BorderThickness="1.4"
-                                            CornerRadius="14"
-                                            Effect="{StaticResource CardShadowEffect}">
-                                        <Grid>
-                                            <Border Margin="20"
-                                                    Background="#154F9DED"
-                                                    CornerRadius="10"
-                                                    automation:AutomationProperties.Name="" />
-                                            <UniformGrid Rows="2"
-                                                         Columns="2"
-                                                         automation:AutomationProperties.Name=""
-                                                         HorizontalAlignment="Center"
-                                                         VerticalAlignment="Center">
-                                                <TextBlock Margin="0,0,6,6"
-                                                           FontSize="18"
-                                                           Foreground="#A64F9DED"
-                                                           Text="♠" />
-                                                <TextBlock Margin="6,0,0,6"
-                                                           FontSize="18"
-                                                           Foreground="#A64F9DED"
-                                                           Text="♥" />
-                                                <TextBlock Margin="0,6,6,0"
-                                                           FontSize="18"
-                                                           Foreground="#A64F9DED"
-                                                           Text="♣" />
-                                                <TextBlock Margin="6,6,0,0"
-                                                           FontSize="18"
-                                                           Foreground="#A64F9DED"
-                                                           Text="♦" />
-                                            </UniformGrid>
-                                        </Grid>
-                                    </Border>
-                                </Grid>
+                                     <Grid Width="{StaticResource StockPileWidth}"
+                                           Height="{StaticResource StockPileHeight}"
+                                           automation:AutomationProperties.Name="Stock pile"
+                                           automation:AutomationProperties.HelpText="Face-down draw pile.">
+                                         <Border Margin="16,16,0,0"
+                                                 Background="#1EFFFFFF"
+                                                 BorderBrush="#2FFFFFFF"
+                                                 BorderThickness="1"
+                                                 CornerRadius="14" />
+                                         <Border Margin="8,8,0,0"
+                                                 Background="#2A1C3044"
+                                                 BorderBrush="#35FFFFFF"
+                                                 BorderThickness="1"
+                                                 CornerRadius="14" />
+                                         <Border Background="#FFF7FBFF"
+                                                 BorderBrush="#FF4F9DED"
+                                                 BorderThickness="1.4"
+                                                 CornerRadius="14"
+                                                 Effect="{StaticResource CardShadowEffect}">
+                                             <Grid>
+                                                 <Border Margin="20"
+                                                         Background="#154F9DED"
+                                                         CornerRadius="10"
+                                                         automation:AutomationProperties.Name="" />
+                                                 <UniformGrid Rows="2"
+                                                              Columns="2"
+                                                              automation:AutomationProperties.Name=""
+                                                              HorizontalAlignment="Center"
+                                                              VerticalAlignment="Center">
+                                                     <TextBlock Margin="0,0,6,6"
+                                                                FontSize="18"
+                                                                Foreground="#A64F9DED"
+                                                                Text="♠" />
+                                                     <TextBlock Margin="6,0,0,6"
+                                                                FontSize="18"
+                                                                Foreground="#A64F9DED"
+                                                                Text="♥" />
+                                                     <TextBlock Margin="0,6,6,0"
+                                                                FontSize="18"
+                                                                Foreground="#A64F9DED"
+                                                                Text="♣" />
+                                                     <TextBlock Margin="6,6,0,0"
+                                                                FontSize="18"
+                                                                Foreground="#A64F9DED"
+                                                                Text="♦" />
+                                                 </UniformGrid>
+                                             </Grid>
+                                         </Border>
+                                     </Grid>
 
-                                <ContentPresenter Grid.Column="2"
-                                                  Content="{Binding DiscardPile.TopCardVisual}"
-                                                  ContentTemplate="{StaticResource DisplayCardTemplate}"
-                                                  automation:AutomationProperties.Name="Discard pile" />
-                            </Grid>
+                                     <Grid Grid.Column="2"
+                                           Width="{StaticResource StockPileWidth}"
+                                           Height="{StaticResource StockPileHeight}">
+                                         <ContentPresenter HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"
+                                                           Content="{Binding DiscardPile.TopCardVisual}"
+                                                           ContentTemplate="{StaticResource DisplayCardTemplate}"
+                                                           automation:AutomationProperties.Name="Discard pile" />
+                                     </Grid>
+                                 </Grid>
+                             </Border>
 
                             <GroupBox Grid.Row="3"
                                       Grid.Column="0"
@@ -807,8 +823,8 @@
                                         VerticalScrollBarVisibility="Auto"
                                         HorizontalScrollBarVisibility="Disabled">
                             <ItemsControl ItemsSource="{Binding RightSeatHand.Cards}"
-                                          Margin="{StaticResource VerticalHandScrollPadding}"
-                                          ItemContainerStyle="{StaticResource OverlappedVerticalHandItemStyle}">
+                                           Margin="{DynamicResource VerticalHandScrollPadding}"
+                                           ItemContainerStyle="{StaticResource OverlappedVerticalHandItemStyle}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <StackPanel Orientation="Vertical" />
@@ -824,7 +840,7 @@
 
                 <Border Grid.Row="2"
                         Grid.Column="2"
-                        Margin="{StaticResource BottomSeatMargin}">
+                        Margin="{DynamicResource BottomSeatMargin}">
                     <Border.Style>
                         <Style BasedOn="{StaticResource SeatPanelStyle}" TargetType="Border" />
                     </Border.Style>
