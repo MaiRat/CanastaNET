@@ -247,8 +247,12 @@ public class DesktopWorkspaceViewModelTests
 
         Assert.Contains("x:Key=\"OverlappedHorizontalHandItemStyle\"", xaml, StringComparison.Ordinal);
         Assert.Contains("x:Key=\"OverlappedVerticalHandItemStyle\"", xaml, StringComparison.Ordinal);
-        Assert.Contains("<ScaleTransform ScaleX=\"0.94\" ScaleY=\"0.94\" />", xaml, StringComparison.Ordinal);
-        Assert.Contains("<ScaleTransform ScaleX=\"0.92\" ScaleY=\"0.92\" />", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Thickness x:Key=\"DefaultHorizontalHandOverlapMargin\">0,0,-90,0</Thickness>", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Thickness x:Key=\"DefaultVerticalHandOverlapMargin\">0,0,0,-136</Thickness>", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Setter Property=\"Margin\" Value=\"{StaticResource DefaultHorizontalHandOverlapMargin}\" />", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Setter Property=\"Margin\" Value=\"{StaticResource DefaultVerticalHandOverlapMargin}\" />", xaml, StringComparison.Ordinal);
+        Assert.Contains("<ScaleTransform ScaleX=\"0.86\" ScaleY=\"0.86\" />", xaml, StringComparison.Ordinal);
+        Assert.Contains("<ScaleTransform ScaleX=\"0.82\" ScaleY=\"0.82\" />", xaml, StringComparison.Ordinal);
         Assert.Matches(new Regex(
             "ItemsControl ItemsSource=\\\"\\{Binding TopSeatHand\\.Cards\\}\\\"[\\s\\S]*?VerticalAlignment=\\\"Bottom\\\"[\\s\\S]*?ItemContainerStyle=\\\"\\{StaticResource OverlappedHorizontalHandItemStyle\\}\\\"",
             RegexOptions.CultureInvariant),
@@ -272,6 +276,8 @@ public class DesktopWorkspaceViewModelTests
     {
         var xaml = File.ReadAllText(GetMainWindowXamlPath());
         Assert.Contains("<Setter Property=\"BorderThickness\" Value=\"0\" />", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Setter Property=\"Padding\" Value=\"0\" />", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("<Setter Property=\"Background\" Value=\"#18243447\" />", xaml, StringComparison.Ordinal);
         var leftSeatSection = ExtractSection(
             xaml,
             "<Border Grid.Row=\"0\"\n                        Grid.RowSpan=\"3\"\n                        Grid.Column=\"0\">",
@@ -281,16 +287,23 @@ public class DesktopWorkspaceViewModelTests
             "<Border Grid.Row=\"0\"\n                        Grid.RowSpan=\"3\"\n                        Grid.Column=\"4\">",
             "                </Border>");
 
-        Assert.Contains("<Grid Margin=\"0,0,18,0\">", leftSeatSection, StringComparison.Ordinal);
+        Assert.Contains("<Grid Margin=\"0,0,10,0\">", leftSeatSection, StringComparison.Ordinal);
         Assert.Contains("<RowDefinition Height=\"Auto\" />", leftSeatSection, StringComparison.Ordinal);
         Assert.Contains("<RowDefinition Height=\"*\" />", leftSeatSection, StringComparison.Ordinal);
         Assert.Contains("<ScrollViewer Grid.Row=\"1\"", leftSeatSection, StringComparison.Ordinal);
+        Assert.Contains("FontSize=\"12\"", leftSeatSection, StringComparison.Ordinal);
+        Assert.DoesNotContain("TopSeatHand.CardCount", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("LeftSeatHand.CardCount", leftSeatSection, StringComparison.Ordinal);
         Assert.DoesNotContain("Margin=\"0,68,18,68\"", leftSeatSection, StringComparison.Ordinal);
 
-        Assert.Contains("<Grid Margin=\"18,0,0,0\">", rightSeatSection, StringComparison.Ordinal);
+        Assert.Contains("<Grid Margin=\"10,0,0,0\">", rightSeatSection, StringComparison.Ordinal);
         Assert.Contains("<RowDefinition Height=\"Auto\" />", rightSeatSection, StringComparison.Ordinal);
         Assert.Contains("<RowDefinition Height=\"*\" />", rightSeatSection, StringComparison.Ordinal);
         Assert.Contains("<ScrollViewer Grid.Row=\"1\"", rightSeatSection, StringComparison.Ordinal);
+        Assert.Contains("FontSize=\"12\"", rightSeatSection, StringComparison.Ordinal);
+        Assert.DoesNotContain("RightSeatHand.CardCount", rightSeatSection, StringComparison.Ordinal);
+        Assert.DoesNotContain("BottomSeatHand.CardCount", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("BottomSeatHand.StatusText", xaml, StringComparison.Ordinal);
         Assert.DoesNotContain("Margin=\"18,68,0,68\"", rightSeatSection, StringComparison.Ordinal);
     }
 
@@ -314,7 +327,7 @@ public class DesktopWorkspaceViewModelTests
     {
         var xaml = File.ReadAllText(GetMainWindowXamlPath());
 
-        Assert.Contains("Header=\"Central piles\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("Text=\"Central piles\"", xaml, StringComparison.Ordinal);
         Assert.Matches(new Regex(
             "<Border Grid\\.Row=\\\"1\\\"[\\s\\S]*?Grid\\.Column=\\\"2\\\"[\\s\\S]*?BorderThickness=\\\"0\\\"",
             RegexOptions.CultureInvariant),
@@ -323,6 +336,10 @@ public class DesktopWorkspaceViewModelTests
         Assert.Contains("Text=\"Discard pile\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Text=\"Face-down draw pile\"", xaml, StringComparison.Ordinal);
         Assert.Contains("Content=\"{Binding DiscardPile.TopCardVisual}\"", xaml, StringComparison.Ordinal);
+        Assert.DoesNotContain("Header=\"Central piles\"", xaml, StringComparison.Ordinal);
+        Assert.Contains("<sys:Double x:Key=\"StockPileWidth\">108</sys:Double>", xaml, StringComparison.Ordinal);
+        Assert.Contains("<sys:Double x:Key=\"StockPileHeight\">162</sys:Double>", xaml, StringComparison.Ordinal);
+        Assert.Contains("<Grid Width=\"{StaticResource StockPileWidth}\"", xaml, StringComparison.Ordinal);
     }
 
     private static string GetMainWindowXamlPath()
